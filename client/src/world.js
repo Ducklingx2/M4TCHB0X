@@ -625,4 +625,217 @@ export class World {
         this.scene.remove(sign);
 
         sign.traverse((object) => {
-            if (object.geometry
+                        if (object.geometry) {
+                object.geometry.dispose();
+            }
+
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach((material) => {
+                        material.dispose();
+                    });
+                } else {
+                    object.material.dispose();
+                }
+            }
+        });
+    }
+
+    // ======================================================
+    // PLAYERS
+    // ======================================================
+
+    addPlayer(player) {
+        if (!player) return;
+
+        if (!this.players.includes(player)) {
+            this.players.push(player);
+        }
+    }
+
+    removePlayer(player) {
+        const index = this.players.indexOf(player);
+
+        if (index !== -1) {
+            this.players.splice(index, 1);
+        }
+    }
+
+    getPlayers() {
+        return this.players;
+    }
+
+    // ======================================================
+    // SIGNS / INTERACTABLES
+    // ======================================================
+
+    getSigns() {
+        return this.signs;
+    }
+
+    getInteractables() {
+        return this.interactables;
+    }
+
+    // ======================================================
+    // SPARK SWITCH
+    // ======================================================
+
+    switchWithPlayer(target) {
+        if (!target) return;
+
+        const localPlayer =
+            this.players.find(
+                player => player.userData?.local === true
+            );
+
+        if (!localPlayer) return;
+
+        const localPosition =
+            localPlayer.position.clone();
+
+        const targetPosition =
+            target.position.clone();
+
+        localPlayer.position.copy(
+            targetPosition
+        );
+
+        target.position.copy(
+            localPosition
+        );
+    }
+
+    // ======================================================
+    // BLOCK CREATION
+    // ======================================================
+
+    createBlock(
+        width,
+        height,
+        depth,
+        x,
+        y,
+        z,
+        material
+    ) {
+        const block = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                width,
+                height,
+                depth
+            ),
+            material
+        );
+
+        block.position.set(
+            x,
+            y,
+            z
+        );
+
+        block.castShadow = true;
+        block.receiveShadow = true;
+
+        this.scene.add(block);
+
+        this.colliders.push(block);
+
+        return block;
+    }
+
+    // ======================================================
+    // COLLISION HELPERS
+    // ======================================================
+
+    getColliders() {
+        return this.colliders;
+    }
+
+    isPositionBlocked(position, radius = 0.35) {
+        const playerBox = new THREE.Box3(
+            new THREE.Vector3(
+                position.x - radius,
+                0,
+                position.z - radius
+            ),
+            new THREE.Vector3(
+                position.x + radius,
+                1.8,
+                position.z + radius
+            )
+        );
+
+        for (const collider of this.colliders) {
+            if (!collider) continue;
+
+            const box = new THREE.Box3()
+                .setFromObject(collider);
+
+            if (playerBox.intersectsBox(box)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ======================================================
+    // WORLD UPDATE
+    // ======================================================
+
+    update(delta) {
+        // Reserved for doors, moving objects,
+        // multiplayer interpolation, etc.
+    }
+
+    // ======================================================
+    // CLEANUP
+    // ======================================================
+
+    destroy() {
+        for (const object of [...this.signs]) {
+            this.destroySign(object);
+        }
+
+        for (const object of this.interactables) {
+            if (!object) continue;
+
+            this.scene.remove(object);
+
+            if (object.geometry) {
+                object.geometry.dispose();
+            }
+
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(
+                        material => material.dispose()
+                    );
+                } else {
+                    object.material.dispose();
+                }
+            }
+        }
+
+        this.signs = [];
+        this.players = [];
+        this.interactables = [];
+        this.colliders = [];
+
+        if (this.grid) {
+            this.scene.remove(this.grid);
+            this.grid.geometry.dispose();
+
+            if (this.grid.material) {
+                if (Array.isArray(this.grid.material)) {
+                    this.grid.material.forEach(
+                        material => material.dispose()
+                    );
+                } else {
+                    this.grid.material.dispose();
+                }
+            }
+        }
+    }
+}
