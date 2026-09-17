@@ -4,620 +4,625 @@ export class World {
     constructor(scene) {
         this.scene = scene;
 
-        this.interactables = [];
         this.colliders = [];
+        this.interactables = [];
+        this.signs = [];
+        this.players = [];
 
-        this.blockSize = 1;
+        this.materials = {};
 
-        this.materials = {
-            floor: new THREE.MeshStandardMaterial({
-                color: 0x3b3935,
+        this.createMaterials();
+        this.createWorld();
+    }
+
+    // ======================================================
+    // MATERIALS
+    // ======================================================
+
+    createMaterials() {
+        this.materials.floor =
+            new THREE.MeshStandardMaterial({
+                color: 0x3a3732,
                 roughness: 0.92
-            }),
+            });
 
-            wall: new THREE.MeshStandardMaterial({
-                color: 0x56514a,
+        this.materials.wall =
+            new THREE.MeshStandardMaterial({
+                color: 0x68645d,
                 roughness: 0.88
-            }),
+            });
 
-            wallDark: new THREE.MeshStandardMaterial({
-                color: 0x292824,
-                roughness: 0.94
-            }),
+        this.materials.wallDark =
+            new THREE.MeshStandardMaterial({
+                color: 0x292724,
+                roughness: 0.95
+            });
 
-            wood: new THREE.MeshStandardMaterial({
-                color: 0x664b37,
+        this.materials.wood =
+            new THREE.MeshStandardMaterial({
+                color: 0x6f4930,
                 roughness: 0.9
-            }),
+            });
 
-            metal: new THREE.MeshStandardMaterial({
-                color: 0x55524d,
-                metalness: 0.55,
-                roughness: 0.55
-            }),
+        this.materials.sign =
+            new THREE.MeshStandardMaterial({
+                color: 0xc79b61,
+                roughness: 0.82
+            });
 
-            red: new THREE.MeshStandardMaterial({
-                color: 0x8c3024,
+        this.materials.metal =
+            new THREE.MeshStandardMaterial({
+                color: 0x454545,
+                metalness: 0.75,
+                roughness: 0.3
+            });
+
+        this.materials.red =
+            new THREE.MeshStandardMaterial({
+                color: 0x8e2419,
+                roughness: 0.7
+            });
+
+        this.materials.black =
+            new THREE.MeshStandardMaterial({
+                color: 0x111111,
                 roughness: 0.8
-            }),
+            });
 
-            glass: new THREE.MeshStandardMaterial({
-                color: 0x777873,
+        this.materials.glass =
+            new THREE.MeshStandardMaterial({
+                color: 0x87959a,
                 transparent: true,
                 opacity: 0.35,
-                roughness: 0.15
-            })
-        };
-
-        this.build();
+                roughness: 0.15,
+                metalness: 0.1
+            });
     }
 
-    // =========================================================
-    // WORLD BUILD
-    // =========================================================
+    // ======================================================
+    // WORLD
+    // ======================================================
 
-    build() {
+    createWorld() {
         this.createFloor();
-        this.createWalls();
+        this.createOuterWalls();
         this.createRooms();
-        this.createCenterArea();
-        this.createProps();
-        this.createSpawn();
+        this.createCentralArea();
+        this.createTables();
+        this.createCrates();
+        this.createLights();
+        this.createGrid();
     }
 
-    // =========================================================
-    // BASIC BLOCK
-    // =========================================================
-
-    createBlock(
-        x,
-        y,
-        z,
-        width,
-        height,
-        depth,
-        material,
-        options = {}
-    ) {
-        const geometry =
-            new THREE.BoxGeometry(
-                width,
-                height,
-                depth
-            );
-
-        const mesh =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
-
-        mesh.position.set(
-            x,
-            y,
-            z
-        );
-
-        mesh.castShadow =
-            options.castShadow !== false;
-
-        mesh.receiveShadow =
-            options.receiveShadow !== false;
-
-        this.scene.add(mesh);
-
-        if (options.collider !== false) {
-            this.colliders.push(mesh);
-        }
-
-        if (options.interactable) {
-            this.interactables.push(mesh);
-        }
-
-        return mesh;
-    }
-
-    // =========================================================
+    // ======================================================
     // FLOOR
-    // =========================================================
+    // ======================================================
 
     createFloor() {
-        const floor = this.createBlock(
+        const floor = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                60,
+                0.4,
+                60
+            ),
+            this.materials.floor
+        );
+
+        floor.position.set(
             0,
-            -0.5,
-            0,
-            60,
-            1,
-            60,
-            this.materials.floor,
-            {
-                collider: false
-            }
+            -0.2,
+            0
         );
 
         floor.receiveShadow = true;
 
-        /*
-         * Subtle grid-like floor divisions.
-         * These are visual only.
-         */
+        this.scene.add(floor);
 
-        const grid = new THREE.GridHelper(
-            60,
-            60,
-            0x504d47,
-            0x292824
-        );
-
-        grid.position.y = 0.012;
-
-        this.scene.add(grid);
+        this.colliders.push(floor);
     }
 
-    // =========================================================
+    // ======================================================
     // OUTER WALLS
-    // =========================================================
+    // ======================================================
 
-    createWalls() {
-        const wallHeight = 5;
-        const thickness = 0.7;
-        const size = 30;
-
-        // North
+    createOuterWalls() {
         this.createBlock(
+            60,
+            5,
+            0.5,
             0,
-            wallHeight / 2,
-            -size,
-            size * 2,
-            wallHeight,
-            thickness,
+            2.5,
+            -30,
             this.materials.wallDark
         );
 
-        // South
         this.createBlock(
+            60,
+            5,
+            0.5,
             0,
-            wallHeight / 2,
-            size,
-            size * 2,
-            wallHeight,
-            thickness,
+            2.5,
+            30,
             this.materials.wallDark
         );
 
-        // West
         this.createBlock(
-            -size,
-            wallHeight / 2,
+            0.5,
+            5,
+            60,
+            -30,
+            2.5,
             0,
-            thickness,
-            wallHeight,
-            size * 2,
             this.materials.wallDark
         );
 
-        // East
         this.createBlock(
-            size,
-            wallHeight / 2,
+            0.5,
+            5,
+            60,
+            30,
+            2.5,
             0,
-            thickness,
-            wallHeight,
-            size * 2,
             this.materials.wallDark
         );
     }
 
-    // =========================================================
-    // ROOMS
-    // =========================================================
+    // ======================================================
+    // INTERNAL ROOMS
+    // ======================================================
 
     createRooms() {
-        /*
-         * EAST ROOM
-         */
+        // North divider
+        this.createBlock(
+            24,
+            4,
+            0.4,
+            -16,
+            2,
+            -12,
+            this.materials.wall
+        );
 
         this.createBlock(
-            14,
-            2.5,
-            8,
-            0.6,
-            5,
+            10,
+            4,
+            0.4,
+            17,
+            2,
+            -12,
+            this.materials.wall
+        );
+
+        // South divider
+        this.createBlock(
+            20,
+            4,
+            0.4,
+            -20,
+            2,
             12,
             this.materials.wall
         );
 
         this.createBlock(
-            14,
-            2.5,
-            -8,
-            0.6,
-            5,
+            16,
+            4,
+            0.4,
+            16,
+            2,
             12,
             this.materials.wall
         );
 
-        /*
-         * WEST ROOM
-         */
-
+        // West vertical divider
         this.createBlock(
-            -14,
-            2.5,
-            8,
-            0.6,
-            5,
-            12,
+            0.4,
+            4,
+            18,
+            -12,
+            2,
+            0,
             this.materials.wall
         );
 
+        // East vertical divider
         this.createBlock(
-            -14,
-            2.5,
-            -8,
-            0.6,
-            5,
+            0.4,
+            4,
+            16,
             12,
+            2,
+            4,
             this.materials.wall
         );
 
-        /*
-         * NORTH DIVIDER
-         */
-
-        this.createBlock(
-            -8,
-            2.5,
-            -14,
-            12,
-            5,
-            0.6,
-            this.materials.wall
-        );
-
-        this.createBlock(
-            8,
-            2.5,
-            -14,
-            12,
-            5,
-            0.6,
-            this.materials.wall
-        );
-
-        /*
-         * SOUTH DIVIDER
-         */
-
-        this.createBlock(
-            -8,
-            2.5,
-            14,
-            12,
-            5,
-            0.6,
-            this.materials.wall
-        );
-
+        // Small enclosed room
         this.createBlock(
             8,
-            2.5,
-            14,
-            12,
-            5,
-            0.6,
-            this.materials.wall
+            3,
+            0.4,
+            20,
+            1.5,
+            -5,
+            this.materials.wallDark
+        );
+
+        this.createBlock(
+            0.4,
+            3,
+            7,
+            16,
+            1.5,
+            -8,
+            this.materials.wallDark
+        );
+
+        this.createBlock(
+            0.4,
+            3,
+            7,
+            24,
+            1.5,
+            -8,
+            this.materials.wallDark
         );
     }
 
-    // =========================================================
-    // CENTER AREA
-    // =========================================================
+    // ======================================================
+    // CENTRAL AREA
+    // ======================================================
 
-    createCenterArea() {
-        /*
-         * Central raised platform.
-         */
-
-        this.createBlock(
-            0,
-            0.15,
-            0,
-            8,
-            0.3,
-            8,
-            this.materials.wood,
-            {
-                collider: false
-            }
+    createCentralArea() {
+        const platform = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                12,
+                0.5,
+                8
+            ),
+            this.materials.wallDark
         );
 
-        /*
-         * Matchbox-like central structure.
-         */
+        platform.position.set(
+            0,
+            0.25,
+            0
+        );
 
+        platform.castShadow = true;
+        platform.receiveShadow = true;
+
+        this.scene.add(platform);
+
+        this.colliders.push(platform);
+
+        // Central matchbox structure
         this.createBlock(
-            0,
-            1.15,
-            0,
-            3.5,
-            2,
+            7,
             2.2,
+            3.2,
+            0,
+            1.35,
+            0,
             this.materials.red
         );
 
-        /*
-         * Top lip.
-         */
-
-        this.createBlock(
-            0,
-            2.25,
-            0,
-            3.9,
-            0.2,
-            2.5,
-            this.materials.metal
-        );
-    }
-
-    // =========================================================
-    // PROPS
-    // =========================================================
-
-    createProps() {
-        /*
-         * Tables
-         */
-
-        this.createTable(
-            -8,
-            0,
-            -7
+        // Black top
+        const top = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                7.2,
+                0.15,
+                3.4
+            ),
+            this.materials.black
         );
 
-        this.createTable(
-            8,
+        top.position.set(
             0,
-            7
-        );
-
-        this.createTable(
-            -8,
-            0,
-            7
-        );
-
-        this.createTable(
-            8,
-            0,
-            -7
-        );
-
-        /*
-         * Crates
-         */
-
-        this.createCrate(
-            -21,
-            0,
-            -20
-        );
-
-        this.createCrate(
-            -19,
-            0,
-            -20
-        );
-
-        this.createCrate(
-            21,
-            0,
-            20
-        );
-
-        /*
-         * Lamps
-         */
-
-        this.createLamp(
-            -7,
-            0,
+            2.55,
             0
         );
 
-        this.createLamp(
+        top.castShadow = true;
+
+        this.scene.add(top);
+
+        // Matchbox stripe
+        const stripe = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.18,
+                2.1,
+                3.35
+            ),
+            this.materials.wallDark
+        );
+
+        stripe.position.set(
+            0,
+            1.4,
+            0
+        );
+
+        stripe.castShadow = true;
+
+        this.scene.add(stripe);
+    }
+
+    // ======================================================
+    // TABLES
+    // ======================================================
+
+    createTables() {
+        this.createTable(
+            -20,
+            4,
+            6,
+            2.2
+        );
+
+        this.createTable(
+            18,
+            18,
+            6,
+            2.2
+        );
+
+        this.createTable(
+            -20,
+            -20,
             7,
-            0,
-            0
+            2.2
         );
     }
 
-    createTable(x, y, z) {
-        const top = this.createBlock(
-            x,
-            y + 1.1,
-            z,
-            3,
-            0.25,
-            1.6,
+    createTable(x, z, width, height) {
+        const top = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                width,
+                0.3,
+                2.4
+            ),
             this.materials.wood
         );
 
-        const legPositions = [
-            [-1.2, -0.6],
-            [1.2, -0.6],
-            [-1.2, 0.6],
-            [1.2, 0.6]
-        ];
-
-        for (const [lx, lz] of legPositions) {
-            this.createBlock(
-                x + lx,
-                y + 0.5,
-                z + lz,
-                0.18,
-                1,
-                0.18,
-                this.materials.wood
-            );
-        }
-
-        return top;
-    }
-
-    createCrate(x, y, z) {
-        return this.createBlock(
+        top.position.set(
             x,
-            y + 0.6,
-            z,
-            1.2,
-            1.2,
-            1.2,
-            this.materials.wood,
-            {
-                interactable: true
-            }
-        );
-    }
-
-    createLamp(x, y, z) {
-        this.createBlock(
-            x,
-            y + 2.7,
-            z,
-            0.15,
-            5.4,
-            0.15,
-            this.materials.metal
-        );
-
-        this.createBlock(
-            x,
-            y + 5.2,
-            z,
-            0.8,
-            0.35,
-            0.8,
-            this.materials.red,
-            {
-                collider: false
-            }
-        );
-
-        const light =
-            new THREE.PointLight(
-                0xffb07c,
-                4,
-                12
-            );
-
-        light.position.set(
-            x,
-            y + 4.8,
+            height,
             z
         );
 
-        light.castShadow = true;
+        top.castShadow = true;
+        top.receiveShadow = true;
 
-        this.scene.add(light);
+        this.scene.add(top);
+
+        const legPositions = [
+            [-width / 2 + 0.3, -0.9],
+            [width / 2 - 0.3, -0.9],
+            [-width / 2 + 0.3, 0.9],
+            [width / 2 - 0.3, 0.9]
+        ];
+
+        for (const [lx, lz] of legPositions) {
+            const leg = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.3,
+                    height,
+                    0.3
+                ),
+                this.materials.metal
+            );
+
+            leg.position.set(
+                x + lx,
+                height / 2,
+                z + lz
+            );
+
+            leg.castShadow = true;
+
+            this.scene.add(leg);
+
+            this.colliders.push(leg);
+        }
+
+        this.colliders.push(top);
     }
 
-    // =========================================================
-    // SPAWN
-    // =========================================================
+    // ======================================================
+    // CRATES
+    // ======================================================
 
-    createSpawn() {
-        /*
-         * Spawn marker.
-         * Invisible during normal gameplay.
-         */
+    createCrates() {
+        this.createCrate(
+            -24,
+            20,
+            1.8
+        );
 
-        this.spawn = new THREE.Vector3(
-            0,
-            0,
-            10
+        this.createCrate(
+            -22,
+            20,
+            1.8
+        );
+
+        this.createCrate(
+            23,
+            18,
+            2
+        );
+
+        this.createCrate(
+            20,
+            -22,
+            1.5
         );
     }
 
-    getSpawnPosition() {
-        return this.spawn.clone();
+    createCrate(x, z, size) {
+        const crate = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                size,
+                size,
+                size
+            ),
+            this.materials.wood
+        );
+
+        crate.position.set(
+            x,
+            size / 2,
+            z
+        );
+
+        crate.castShadow = true;
+        crate.receiveShadow = true;
+
+        crate.userData.interactable = true;
+        crate.userData.type = "crate";
+
+        this.scene.add(crate);
+
+        this.colliders.push(crate);
+        this.interactables.push(crate);
     }
 
-    // =========================================================
-    // INTERACTION
-    // =========================================================
+    // ======================================================
+    // LIGHTS
+    // ======================================================
 
-    getInteractableObjects() {
-        return this.interactables;
+    createLights() {
+        const positions = [
+            [-18, 4, -18],
+            [18, 4, -18],
+            [-18, 4, 18],
+            [18, 4, 18],
+            [0, 4, 0]
+        ];
+
+        for (const [x, y, z] of positions) {
+            const light = new THREE.PointLight(
+                0xffd7a3,
+                3.5,
+                15,
+                2
+            );
+
+            light.position.set(
+                x,
+                y,
+                z
+            );
+
+            light.castShadow = true;
+
+            this.scene.add(light);
+        }
     }
 
-    // =========================================================
-    // FLOOR HEIGHT
-    // =========================================================
+    // ======================================================
+    // GRID
+    // ======================================================
 
-    getFloorHeight(x, z) {
-        /*
-         * Prototype currently uses a flat floor.
-         *
-         * This method exists so we can later add:
-         * - stairs
-         * - raised rooms
-         * - platforms
-         * - uneven terrain
-         */
+    createGrid() {
+        const grid = new THREE.GridHelper(
+            60,
+            60,
+            0x5c5852,
+            0x282624
+        );
 
-        return 0;
+        grid.position.y = 0.01;
+
+        this.scene.add(grid);
+
+        this.grid = grid;
     }
 
-    // =========================================================
-    // UPDATE
-    // =========================================================
+    // ======================================================
+    // SIGNS
+    // ======================================================
 
-    update(delta) {
-        /*
-         * World animations will eventually live here.
-         *
-         * Examples:
-         * - flickering lights
-         * - moving doors
-         * - round events
-         * - locked rooms
-         */
+    placeSign(position, rotationY = 0) {
+        const group = new THREE.Group();
 
-        void delta;
+        group.position.copy(position);
+        group.rotation.y = rotationY;
+
+        // Sign board
+        const board = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1.25,
+                0.8,
+                0.08
+            ),
+            this.materials.sign
+        );
+
+        board.castShadow = true;
+        board.receiveShadow = true;
+
+        group.add(board);
+
+        // Left post
+        const postLeft = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.08,
+                0.8,
+                0.08
+            ),
+            this.materials.wood
+        );
+
+        postLeft.position.set(
+            -0.42,
+            -0.7,
+            0
+        );
+
+        group.add(postLeft);
+
+        // Right post
+        const postRight = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.08,
+                0.8,
+                0.08
+            ),
+            this.materials.wood
+        );
+
+        postRight.position.set(
+            0.42,
+            -0.7,
+            0
+        );
+
+        group.add(postRight);
+
+        group.userData.type = "sign";
+        group.userData.playerCreated = true;
+
+        this.scene.add(group);
+
+        this.signs.push(group);
+
+        return group;
     }
 
-    // =========================================================
-    // CLEANUP
-    // =========================================================
+    destroySign(sign) {
+        if (!sign) return;
 
-    destroy() {
-        for (const object of [...this.scene.children]) {
-            if (
-                object.isMesh ||
-                object.isLight ||
-                object.isGridHelper
-            ) {
-                this.scene.remove(object);
+        const index =
+            this.signs.indexOf(sign);
 
-                if (object.geometry) {
-                    object.geometry.dispose();
-                }
-
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(
-                            material => material.dispose()
-                        );
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            }
+        if (index !== -1) {
+            this.signs.splice(
+                index,
+                1
+            );
         }
 
-        this.interactables = [];
-        this.colliders = [];
-    }
-}
+        this.scene.remove(sign);
+
+        sign.traverse((object) => {
+            if (object.geometry
