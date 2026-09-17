@@ -1,0 +1,950 @@
+/* =========================================================
+   M4TCHB0X
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg: #080808;
+    --panel: rgba(12, 12, 12, 0.88);
+    --panel-solid: #101010;
+
+    --white: #f1eee7;
+    --muted: #85827b;
+    --dim: #4c4a45;
+
+    --red: #d64a32;
+    --red-bright: #f05a3e;
+    --red-dark: #6d2118;
+
+    --border: rgba(241, 238, 231, 0.12);
+    --border-bright: rgba(241, 238, 231, 0.24);
+
+    --shadow: rgba(0, 0, 0, 0.65);
+
+    --ui-font: "Inter", sans-serif;
+    --mono-font: "DM Mono", monospace;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    background: var(--bg);
+    color: var(--white);
+
+    font-family: var(--ui-font);
+
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    position: relative;
+}
+
+button {
+    font: inherit;
+}
+
+/* =========================================================
+   GAME CANVAS
+   ========================================================= */
+
+#game {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+
+    background: #090909;
+}
+
+#game canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* =========================================================
+   CROSSHAIR
+   ========================================================= */
+
+#crosshair {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+
+    width: 18px;
+    height: 18px;
+
+    transform: translate(-50%, -50%);
+
+    z-index: 20;
+
+    pointer-events: none;
+}
+
+#crosshair span {
+    position: absolute;
+
+    background: rgba(241, 238, 231, 0.82);
+
+    box-shadow:
+        0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+#crosshair span:first-child {
+    width: 2px;
+    height: 18px;
+
+    left: 8px;
+    top: 0;
+}
+
+#crosshair span:last-child {
+    width: 18px;
+    height: 2px;
+
+    left: 0;
+    top: 8px;
+}
+
+/* =========================================================
+   HUD
+   ========================================================= */
+
+#hud {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+/* Top-left branding */
+
+.brand {
+    position: absolute;
+
+    top: 25px;
+    left: 28px;
+
+    font-family: var(--mono-font);
+    font-size: 18px;
+    font-weight: 500;
+
+    letter-spacing: 0.16em;
+
+    color: var(--white);
+
+    text-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.brand::after {
+    content: "";
+
+    display: block;
+
+    width: 31px;
+    height: 2px;
+
+    margin-top: 8px;
+
+    background: var(--red);
+}
+
+/* Connection */
+
+.status {
+    position: absolute;
+
+    top: 25px;
+    right: 28px;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 8px 11px;
+
+    border: 1px solid var(--border);
+
+    background: rgba(5, 5, 5, 0.65);
+
+    backdrop-filter: blur(8px);
+
+    font-family: var(--mono-font);
+    font-size: 10px;
+
+    letter-spacing: 0.1em;
+
+    color: var(--muted);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: #777;
+
+    box-shadow: 0 0 7px rgba(119, 119, 119, 0.5);
+}
+
+/* =========================================================
+   INTERACTION
+   ========================================================= */
+
+#interaction {
+    position: fixed;
+
+    left: 50%;
+    bottom: 158px;
+
+    transform: translateX(-50%);
+
+    z-index: 30;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transition:
+        opacity 140ms ease,
+        transform 140ms ease;
+}
+
+#interaction.visible {
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        translateY(-3px);
+}
+
+#interaction-text {
+    padding: 9px 14px;
+
+    border: 1px solid var(--border-bright);
+
+    background: rgba(8, 8, 8, 0.88);
+
+    font-family: var(--mono-font);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+
+    color: var(--white);
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+#message {
+    position: fixed;
+
+    left: 50%;
+    top: 17%;
+
+    transform: translateX(-50%);
+
+    z-index: 50;
+
+    max-width: 500px;
+
+    padding: 13px 18px;
+
+    border-left: 2px solid var(--red);
+
+    background: rgba(8, 8, 8, 0.9);
+
+    font-family: var(--mono-font);
+    font-size: 11px;
+
+    letter-spacing: 0.08em;
+
+    color: var(--white);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 180ms ease;
+}
+
+#message.visible {
+    opacity: 1;
+}
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+#controls {
+    position: fixed;
+
+    left: 27px;
+    bottom: 30px;
+
+    z-index: 15;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    font-family: var(--mono-font);
+    font-size: 9px;
+
+    letter-spacing: 0.08em;
+
+    color: rgba(241, 238, 231, 0.42);
+
+    pointer-events: none;
+
+    transition:
+        opacity 400ms ease,
+        transform 400ms ease;
+}
+
+#controls.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+#controls div {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+kbd {
+    min-width: 20px;
+    height: 19px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 5px;
+
+    border: 1px solid rgba(241, 238, 231, 0.16);
+
+    background: rgba(0, 0, 0, 0.55);
+
+    color: rgba(241, 238, 231, 0.72);
+
+    font-family: var(--mono-font);
+    font-size: 8px;
+
+    box-shadow:
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================================
+   HOTBAR
+   ========================================================= */
+
+#hotbar {
+    position: fixed;
+
+    left: 50%;
+    bottom: 27px;
+
+    transform: translateX(-50%);
+
+    z-index: 20;
+
+    display: flex;
+
+    height: 76px;
+
+    padding: 5px;
+
+    border: 1px solid rgba(241, 238, 231, 0.15);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(18, 18, 18, 0.96),
+            rgba(7, 7, 7, 0.96)
+        );
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.55),
+        inset 0 1px rgba(255, 255, 255, 0.04);
+
+    pointer-events: auto;
+}
+
+.slot {
+    position: relative;
+
+    width: 68px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(241, 238, 231, 0.06);
+
+    background: rgba(255, 255, 255, 0.018);
+
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        transform 120ms ease;
+}
+
+.slot:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.slot.selected {
+    border-color: rgba(214, 74, 50, 0.75);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(214, 74, 50, 0.14),
+            rgba(214, 74, 50, 0.025)
+        );
+
+    box-shadow:
+        inset 0 0 18px rgba(214, 74, 50, 0.08);
+}
+
+.slot-number {
+    position: absolute;
+
+    top: 5px;
+    left: 7px;
+
+    font-family: var(--mono-font);
+    font-size: 8px;
+
+    color: rgba(241, 238, 231, 0.35);
+}
+
+.item-name {
+    position: absolute;
+
+    bottom: 5px;
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    font-family: var(--mono-font);
+    font-size: 7px;
+
+    letter-spacing: 0.08em;
+
+    color: rgba(241, 238, 231, 0.42);
+
+    white-space: nowrap;
+}
+
+.slot.selected .item-name {
+    color: rgba(240, 90, 62, 0.85);
+}
+
+/* =========================================================
+   OPEN FIST
+   ========================================================= */
+
+.fist {
+    position: relative;
+
+    width: 31px;
+    height: 29px;
+
+    margin-bottom: 7px;
+}
+
+.fist::before {
+    content: "";
+
+    position: absolute;
+
+    left: 5px;
+    bottom: 2px;
+
+    width: 21px;
+    height: 17px;
+
+    border: 2px solid rgba(241, 238, 231, 0.72);
+
+    border-radius: 4px 5px 6px 6px;
+
+    transform: rotate(-5deg);
+}
+
+.fist .finger {
+    position: absolute;
+
+    bottom: 15px;
+
+    width: 5px;
+    height: 13px;
+
+    border: 2px solid rgba(241, 238, 231, 0.72);
+
+    border-radius: 4px;
+
+    background: transparent;
+}
+
+.fist .finger:nth-child(1) {
+    left: 5px;
+    transform: rotate(-10deg);
+}
+
+.fist .finger:nth-child(2) {
+    left: 11px;
+    height: 16px;
+}
+
+.fist .finger:nth-child(3) {
+    left: 17px;
+    height: 15px;
+
+    transform: rotate(5deg);
+}
+
+.fist .finger:nth-child(4) {
+    left: 23px;
+    height: 12px;
+
+    transform: rotate(11deg);
+}
+
+/* =========================================================
+   BLOCK
+   ========================================================= */
+
+.block-item {
+    width: 25px;
+    height: 25px;
+
+    margin-bottom: 7px;
+
+    border: 2px solid rgba(241, 238, 231, 0.65);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(241, 238, 231, 0.18),
+            rgba(241, 238, 231, 0.04)
+        );
+
+    box-shadow:
+        inset -5px -5px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* =========================================================
+   SIGN
+   ========================================================= */
+
+.sign-item {
+    position: relative;
+
+    width: 29px;
+    height: 31px;
+
+    margin-bottom: 7px;
+}
+
+.sign-item::before {
+    content: "";
+
+    position: absolute;
+
+    left: 3px;
+    top: 1px;
+
+    width: 23px;
+    height: 18px;
+
+    border: 2px solid rgba(241, 238, 231, 0.65);
+
+    background: rgba(241, 238, 231, 0.06);
+}
+
+.sign-item::after {
+    content: "";
+
+    position: absolute;
+
+    left: 14px;
+    top: 19px;
+
+    width: 2px;
+    height: 11px;
+
+    background: rgba(241, 238, 231, 0.65);
+}
+
+/* tiny writing */
+
+.sign-item div {
+    position: absolute;
+
+    left: 8px;
+    top: 7px;
+
+    width: 13px;
+    height: 2px;
+
+    background: rgba(241, 238, 231, 0.35);
+
+    box-shadow:
+        0 4px rgba(241, 238, 231, 0.25);
+}
+
+/* =========================================================
+   ARROW
+   ========================================================= */
+
+.arrow-item {
+    position: relative;
+
+    width: 33px;
+    height: 5px;
+
+    margin-bottom: 7px;
+
+    background: rgba(241, 238, 231, 0.7);
+
+    transform: rotate(-42deg);
+}
+
+.arrow-item::after {
+    content: "";
+
+    position: absolute;
+
+    right: -2px;
+    top: -5px;
+
+    width: 12px;
+    height: 12px;
+
+    border-top: 4px solid rgba(241, 238, 231, 0.7);
+    border-right: 4px solid rgba(241, 238, 231, 0.7);
+
+    transform: rotate(45deg);
+}
+
+/* =========================================================
+   START SCREEN
+   ========================================================= */
+
+#start-screen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(35, 35, 35, 0.28),
+            rgba(4, 4, 4, 0.98) 70%
+        );
+
+    backdrop-filter: blur(5px);
+
+    transition:
+        opacity 500ms ease,
+        visibility 500ms ease;
+}
+
+#start-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.start-panel {
+    width: min(600px, 90vw);
+
+    text-align: center;
+}
+
+/* Main logo */
+
+.logo-small {
+    margin-bottom: 29px;
+
+    font-family: var(--mono-font);
+    font-size: clamp(35px, 6vw, 64px);
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    color: var(--white);
+
+    text-shadow:
+        0 0 35px rgba(241, 238, 231, 0.08);
+}
+
+.start-panel h1 {
+    margin-bottom: 11px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    letter-spacing: 0.28em;
+}
+
+.start-panel p {
+    margin-bottom: 37px;
+
+    font-family: var(--mono-font);
+    font-size: 11px;
+
+    letter-spacing: 0.12em;
+
+    color: var(--muted);
+}
+
+/* Enter button */
+
+#start-button {
+    position: relative;
+
+    min-width: 205px;
+
+    padding: 15px 25px;
+
+    border: 1px solid rgba(214, 74, 50, 0.6);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(214, 74, 50, 0.18),
+            rgba(214, 74, 50, 0.04)
+        );
+
+    color: var(--white);
+
+    font-family: var(--mono-font);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+
+    cursor: pointer;
+
+    transition:
+        background 150ms ease,
+        border-color 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+#start-button::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 3px;
+
+    background: var(--red);
+}
+
+#start-button:hover {
+    border-color: var(--red-bright);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(214, 74, 50, 0.27),
+            rgba(214, 74, 50, 0.07)
+        );
+
+    box-shadow:
+        0 0 25px rgba(214, 74, 50, 0.12);
+
+    transform: translateY(-2px);
+}
+
+#start-button:active {
+    transform: translateY(0);
+}
+
+/* Start note */
+
+.start-note {
+    margin-top: 18px;
+
+    font-family: var(--mono-font);
+    font-size: 8px;
+
+    letter-spacing: 0.13em;
+
+    color: var(--dim);
+}
+
+/* =========================================================
+   INTERACTION POPUP
+   ========================================================= */
+
+#interaction-popup {
+    position: fixed;
+
+    left: 50%;
+    bottom: 230px;
+
+    transform:
+        translateX(-50%)
+        translateY(5px);
+
+    z-index: 40;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 7px 11px;
+
+    border: 1px solid var(--border);
+
+    background: rgba(8, 8, 8, 0.9);
+
+    font-family: var(--mono-font);
+    font-size: 9px;
+
+    letter-spacing: 0.08em;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+        opacity 140ms ease,
+        transform 140ms ease;
+}
+
+#interaction-popup.visible {
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+.popup-line {
+    width: 5px;
+    height: 5px;
+
+    background: var(--red);
+}
+
+/* =========================================================
+   SCREEN VIGNETTE
+   ========================================================= */
+
+body::after {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 5;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 45%,
+            rgba(0, 0, 0, 0.28) 100%
+        );
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .brand {
+        top: 17px;
+        left: 17px;
+
+        font-size: 14px;
+    }
+
+    .status {
+        top: 17px;
+        right: 17px;
+    }
+
+    #controls {
+        display: none;
+    }
+
+    #hotbar {
+        bottom: 15px;
+
+        max-width: calc(100vw - 20px);
+
+        height: 64px;
+        padding: 4px;
+    }
+
+    .slot {
+        width: clamp(42px, 10vw, 62px);
+        height: 54px;
+    }
+
+    .slot:nth-child(n + 7) {
+        display: none;
+    }
+
+    .item-name {
+        display: none;
+    }
+
+    #interaction {
+        bottom: 105px;
+    }
+}
+
+/* =========================================================
+   ACCESSIBILITY / REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
