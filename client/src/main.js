@@ -47,15 +47,10 @@ function startGame() {
     showMessage("MATCHBOX INITIALIZED", 1600);
 }
 
-startButton.addEventListener("click", () => {
-    startGame();
-});
+startButton.addEventListener("click", startGame);
 
 /*
- * ---------------------------------------------------------
- * Prevent browser context menu
- * RMB is part of the game.
- * ---------------------------------------------------------
+ * RMB belongs to M4TCHB0X.
  */
 
 window.addEventListener("contextmenu", (event) => {
@@ -63,9 +58,7 @@ window.addEventListener("contextmenu", (event) => {
 });
 
 /*
- * ---------------------------------------------------------
- * Resize handling
- * ---------------------------------------------------------
+ * Resize
  */
 
 window.addEventListener("resize", () => {
@@ -75,9 +68,7 @@ window.addEventListener("resize", () => {
 });
 
 /*
- * ---------------------------------------------------------
- * Basic browser visibility handling
- * ---------------------------------------------------------
+ * Pause when the browser tab loses focus.
  */
 
 document.addEventListener("visibilitychange", () => {
@@ -91,9 +82,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 /*
- * ---------------------------------------------------------
  * Error protection
- * ---------------------------------------------------------
  */
 
 window.addEventListener("error", (event) => {
@@ -113,21 +102,15 @@ window.addEventListener("unhandledrejection", (event) => {
 });
 
 /*
- * ---------------------------------------------------------
- * Three.js availability check
- * ---------------------------------------------------------
+ * Console identity
  */
 
-if (!THREE) {
-    console.error("Three.js failed to load.");
-} else {
-    console.log(
-        "%cM4TCHB0X",
-        "font-family: monospace; font-size: 24px; font-weight: bold;"
-    );
+console.log(
+    "%cM4TCHB0X",
+    "font-family: monospace; font-size: 24px; font-weight: bold;"
+);
 
-    console.log(
-        "%cTHE FIRST MATCHBOX",
-        "font-family: monospace; color: #d64a32;"
-    );
-}
+console.log(
+    "%cTHE FIRST MATCHBOX",
+    "font-family: monospace; color: #d64a32;"
+);
