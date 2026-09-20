@@ -747,33 +747,40 @@ export class Player {
     // MOUSE
     // =========================================================
 
-    requestMouse() {
-        if (
-            document.pointerLockElement !==
-            document.body
-        ) {
-            document.body.requestPointerLock();
-        }
+   requestMouse() {
+    if (
+        document.pointerLockElement ||
+        this.pointerLockCooldown
+    ) {
+        return;
     }
 
-    releaseMouse() {
-        if (
-            document.pointerLockElement
-        ) {
-            document.exitPointerLock();
-        }
+    this.pointerLockCooldown = true;
+
+    const lock = document.body.requestPointerLock();
+
+    if (lock && typeof lock.catch === "function") {
+        lock.catch(() => {});
     }
 
-    toggleMouse() {
-        if (
-            document.pointerLockElement
-        ) {
-            this.releaseMouse();
-        } else {
-            this.requestMouse();
-        }
-    }
+    setTimeout(() => {
+        this.pointerLockCooldown = false;
+    }, 150);
+}
 
+releaseMouse() {
+    if (document.pointerLockElement) {
+        document.exitPointerLock();
+    }
+}
+
+toggleMouse() {
+    if (document.pointerLockElement) {
+        this.releaseMouse();
+    } else {
+        this.requestMouse();
+    }
+}
     // =========================================================
     // UI
     // =========================================================
