@@ -606,7 +606,6 @@ export class World {
         platform.receiveShadow = true;
 
         this.scene.add(platform);
-        this.colliders.push(platform);
 
         // Central glowing column
         const column = new THREE.Mesh(
