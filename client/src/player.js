@@ -1,250 +1,834 @@
 import * as THREE from "three";
-import { Player } from "./player.js";
-import { World } from "./world.js";
 
-export class Game {
-    constructor(container, options = {}) {
-        this.container = container;
+export class Player {
+    constructor(scene, camera, world, options = {}) {
+        this.scene = scene;
+        this.camera = camera;
+        this.world = world;
 
         this.onMessage =
             options.onMessage || (() => {});
 
-        this.running = false;
-        this.paused = false;
-
-        this.clock =
-            new THREE.Clock();
-
-        this.scene =
-            new THREE.Scene();
-
-        this.scene.background =
-            new THREE.Color(0x090909);
-
-        this.camera =
-            new THREE.PerspectiveCamera(
-                75,
-                window.innerWidth /
-                    window.innerHeight,
-                0.05,
-                1000
-            );
-
-        this.renderer =
-            new THREE.WebGLRenderer({
-                antialias: true,
-                powerPreference:
-                    "high-performance"
-            });
-
-        this.renderer.setPixelRatio(
-            Math.min(
-                window.devicePixelRatio,
-                2
-            )
+        this.position = new THREE.Vector3(
+            0,
+            1.1,
+            5
         );
 
-        this.renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
+        this.velocity = new THREE.Vector3();
 
-        this.renderer.shadowMap.enabled = true;
+        this.height = 1.8;
+        this.radius = 0.35;
 
-        this.renderer.shadowMap.type =
-            THREE.PCFSoftShadowMap;
+        this.walkSpeed = 4.5;
+        this.sprintSpeed = 7.2;
 
-        this.renderer.outputColorSpace =
-            THREE.SRGBColorSpace;
+        this.gravity = 22;
+        this.jumpForce = 8;
 
-        this.renderer.toneMapping =
-            THREE.ACESFilmicToneMapping;
+        this.grounded = false;
 
-        this.renderer.toneMappingExposure =
-            1.15;
+        this.yaw = 0;
+        this.pitch = 0;
 
-        this.container.appendChild(
-            this.renderer.domElement
-        );
+        this.keys = {};
 
-        this.world =
-            new World(this.scene);
+        this.enabled = false;
+        this.pointerLocked = false;
 
-        this.player =
-            new Player(
-                this.scene,
-                this.camera,
-                this.world,
-                {
-                    onMessage:
-                        this.onMessage
-                }
-            );
+        this.uid = "LOCAL";
+        this.role = "MATCH";
 
-        this.setupLighting();
-        this.setupEvents();
-    }
+        this.inventory = [
+            {
+                type: "fist",
+                name: "OPEN FIST",
+                amount: Infinity
+            },
+            {
+                type: "sign",
+                name: "SIGNS",
+                amount: 48
+            },
+            {
+                type: "dart",
+                name: "DART",
+                amount: 1
+            },
+            {
+                type: "gun",
+                name: "GUN",
+                amount: 1,
+                loaded: false
+            },
+            {
+                type: "axe",
+                name: "AXE",
+                amount: 1
+            }
+        ];
 
-    setupLighting() {
-        const ambient =
-            new THREE.HemisphereLight(
-                0xcfd5dc,
-                0x161616,
-                1.4
-            );
+        this.selectedSlot = 0;
 
-        this.scene.add(ambient);
+        this.raycaster =
+            new THREE.Raycaster();
 
-        const main =
-            new THREE.DirectionalLight(
-                0xffead2,
-                2.3
-            );
+        this.center =
+            new THREE.Vector2(0, 0);
 
-        main.position.set(
-            -15,
-            25,
-            -10
-        );
+        this.camera.rotation.order = "YXZ";
 
-        main.castShadow = true;
+        this.setupInput();
 
-        main.shadow.mapSize.width =
-            2048;
-
-        main.shadow.mapSize.height =
-            2048;
-
-        main.shadow.camera.near =
-            0.5;
-
-        main.shadow.camera.far =
-            100;
-
-        main.shadow.camera.left =
-            -40;
-
-        main.shadow.camera.right =
-            40;
-
-        main.shadow.camera.top =
-            40;
-
-        main.shadow.camera.bottom =
-            -40;
-
-        main.shadow.bias =
-            -0.0004;
-
-        this.scene.add(main);
-    }
-
-    setupEvents() {
-        this.handleResize = () => {
-            this.resize();
+        this.userData = {
+            local: true,
+            uid: this.uid,
+            match: true
         };
 
-        window.addEventListener(
-            "resize",
-            this.handleResize
-        );
+        this.world.addPlayer(this);
     }
 
-    start() {
-        if (this.running) return;
+    // =========================================================
+    // INPUT
+    // =========================================================
 
-        this.running = true;
-        this.paused = false;
+    setupInput() {
+        this.onKeyDown = event => {
+            this.keys[event.code] = true;
 
-        this.clock.start();
+            if (
+                event.code.startsWith("Digit")
+            ) {
+                const slot =
+                    Number(event.code.replace("Digit", "")) - 1;
 
-        this.player.enable();
+                if (slot >= 0 && slot < 9) {
+                    this.selectSlot(slot);
+                }
+            }
 
-        this.animate();
-    }
+            if (event.code === "KeyR") {
+                this.loadGun();
+            }
 
-    pause() {
-        if (!this.running) return;
+            if (event.code === "KeyG") {
+                if (this.role === "SPARK") {
+                    this.sparkSwitch();
+                }
+            }
 
-        this.paused = true;
+            if (event.code === "Space") {
+                this.jump();
+            }
 
-        this.player.releaseMouse();
-    }
+            if (event.code === "Escape") {
+                this.toggleMouse();
+            }
+        };
 
-    resume() {
-        if (!this.running) return;
+        this.onKeyUp = event => {
+            this.keys[event.code] = false;
+        };
 
-        this.paused = false;
+        this.onMouseDown = event => {
+            if (!this.enabled) return;
 
-        this.clock.getDelta();
-    }
+            if (event.button === 0) {
+                this.requestMouse();
+            }
 
-    animate() {
-        if (!this.running) return;
+            if (event.button === 2) {
+                this.useSelectedItem();
+            }
+        };
 
-        requestAnimationFrame(
-            () => this.animate()
-        );
+        this.onMouseMove = event => {
+            if (!this.pointerLocked) return;
 
-        const delta =
-            Math.min(
-                this.clock.getDelta(),
-                0.05
+            const sensitivity = 0.002;
+
+            this.yaw -=
+                event.movementX * sensitivity;
+
+            this.pitch -=
+                event.movementY * sensitivity;
+
+            this.pitch = THREE.MathUtils.clamp(
+                this.pitch,
+                -Math.PI / 2 + 0.05,
+                Math.PI / 2 - 0.05
             );
+        };
 
-        if (!this.paused) {
-            this.update(delta);
-        }
+        document.addEventListener(
+            "keydown",
+            this.onKeyDown
+        );
 
-        this.renderer.render(
-            this.scene,
-            this.camera
+        document.addEventListener(
+            "keyup",
+            this.onKeyUp
+        );
+
+        document.addEventListener(
+            "mousedown",
+            this.onMouseDown
+        );
+
+        document.addEventListener(
+            "mousemove",
+            this.onMouseMove
+        );
+
+        document.addEventListener(
+            "pointerlockchange",
+            () => {
+                this.pointerLocked =
+                    document.pointerLockElement ===
+                    document.body;
+            }
         );
     }
+
+    // =========================================================
+    // ENABLE
+    // =========================================================
+
+    enable() {
+        this.enabled = true;
+
+        this.camera.position.set(
+            this.position.x,
+            this.position.y + 0.55,
+            this.position.z
+        );
+
+        this.camera.rotation.set(
+            0,
+            0,
+            0
+        );
+    }
+
+    // =========================================================
+    // MOVEMENT
+    // =========================================================
 
     update(delta) {
-        this.player.update(delta);
-        this.world.update(delta);
+        if (!this.enabled) return;
+
+        this.updateMovement(delta);
+        this.updateCamera();
     }
 
-    resize() {
-        const width =
-            window.innerWidth;
+    updateMovement(delta) {
+        const direction =
+            new THREE.Vector3();
 
-        const height =
-            window.innerHeight;
+        const forward =
+            new THREE.Vector3(
+                0,
+                0,
+                -1
+            );
 
-        this.camera.aspect =
-            width / height;
+        const right =
+            new THREE.Vector3(
+                1,
+                0,
+                0
+            );
 
-        this.camera.updateProjectionMatrix();
-
-        this.renderer.setSize(
-            width,
-            height
+        forward.applyAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            this.yaw
         );
 
-        this.renderer.setPixelRatio(
-            Math.min(
-                window.devicePixelRatio,
-                2
+        right.applyAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            this.yaw
+        );
+
+        if (this.keys.KeyW) {
+            direction.add(forward);
+        }
+
+        if (this.keys.KeyS) {
+            direction.sub(forward);
+        }
+
+        if (this.keys.KeyD) {
+            direction.add(right);
+        }
+
+        if (this.keys.KeyA) {
+            direction.sub(right);
+        }
+
+        if (direction.lengthSq() > 0) {
+            direction.normalize();
+        }
+
+        const sprint =
+            this.keys.ShiftLeft ||
+            this.keys.ShiftRight;
+
+        const speed =
+            sprint
+                ? this.sprintSpeed
+                : this.walkSpeed;
+
+        const movement =
+            direction.multiplyScalar(
+                speed * delta
+            );
+
+        this.tryMove(
+            movement.x,
+            0,
+            movement.z
+        );
+
+        this.velocity.y -=
+            this.gravity * delta;
+
+        const vertical =
+            this.velocity.y * delta;
+
+        const nextY =
+            this.position.y + vertical;
+
+        if (nextY <= 1.1) {
+            this.position.y = 1.1;
+            this.velocity.y = 0;
+            this.grounded = true;
+        } else {
+            this.position.y = nextY;
+            this.grounded = false;
+        }
+    }
+
+    tryMove(dx, dy, dz) {
+        const nextX =
+            this.position.clone();
+
+        nextX.x += dx;
+
+        if (
+            this.world.canMoveTo(
+                nextX,
+                this.radius,
+                this.height
             )
+        ) {
+            this.position.x =
+                nextX.x;
+        }
+
+        const nextZ =
+            this.position.clone();
+
+        nextZ.z += dz;
+
+        if (
+            this.world.canMoveTo(
+                nextZ,
+                this.radius,
+                this.height
+            )
+        ) {
+            this.position.z =
+                nextZ.z;
+        }
+    }
+
+    jump() {
+        if (!this.grounded) return;
+
+        this.velocity.y =
+            this.jumpForce;
+
+        this.grounded = false;
+    }
+
+    // =========================================================
+    // CAMERA
+    // =========================================================
+
+    updateCamera() {
+        this.camera.position.set(
+            this.position.x,
+            this.position.y + 0.55,
+            this.position.z
+        );
+
+        this.camera.rotation.set(
+            this.pitch,
+            this.yaw,
+            0
         );
     }
+
+    // =========================================================
+    // INVENTORY
+    // =========================================================
+
+    selectSlot(index) {
+        if (!this.inventory[index]) return;
+
+        this.selectedSlot = index;
+
+        document
+            .querySelectorAll("#hotbar .slot")
+            .forEach(slot => {
+                slot.classList.toggle(
+                    "selected",
+                    Number(slot.dataset.slot) === index
+                );
+            });
+    }
+
+    getSelectedItem() {
+        return this.inventory[
+            this.selectedSlot
+        ];
+    }
+
+    // =========================================================
+    // ITEMS
+    // =========================================================
+
+    useSelectedItem() {
+        const item =
+            this.getSelectedItem();
+
+        if (!item) return;
+
+        switch (item.type) {
+            case "fist":
+                this.useFist();
+                break;
+
+            case "sign":
+                this.placeSign();
+                break;
+
+            case "gun":
+                this.fireGun();
+                break;
+
+            case "axe":
+                this.useAxe();
+                break;
+        }
+    }
+
+    useFist() {
+        const target =
+            this.getTargetPlayer();
+
+        if (!target) {
+            this.onMessage("NO MATCH TARGET");
+            return;
+        }
+
+        if (this.role === "SPARK") {
+            target.userData.marked = true;
+            this.onMessage("MATCH MARKED");
+            return;
+        }
+
+        if (this.role === "SNUFFER") {
+            target.userData.protected = true;
+            this.onMessage("MATCH PROTECTED");
+            return;
+        }
+
+        this.onMessage("OPEN FIST");
+    }
+
+    // =========================================================
+    // SIGNS
+    // =========================================================
+
+    placeSign() {
+        const item =
+            this.inventory[1];
+
+        if (item.amount <= 0) {
+            this.onMessage("NO SIGNS LEFT");
+            return;
+        }
+
+        const placement =
+            this.getSignPlacement();
+
+        if (!placement) {
+            this.onMessage("NO VALID SIGN LOCATION");
+            return;
+        }
+
+        const sign =
+            this.world.placeSign(
+                placement.position,
+                placement.rotation
+            );
+
+        if (!sign) {
+            this.onMessage("SIGN CANNOT BE PLACED HERE");
+            return;
+        }
+
+        item.amount--;
+
+        this.updateHotbarCount(
+            1,
+            item.amount
+        );
+
+        this.onMessage("SIGN PLACED");
+    }
+
+    getSignPlacement() {
+        this.raycaster.setFromCamera(
+            this.center,
+            this.camera
+        );
+
+        const objects = [
+            ...this.world.getColliders()
+        ];
+
+        const hits =
+            this.raycaster.intersectObjects(
+                objects,
+                false
+            );
+
+        if (hits.length === 0) {
+            return null;
+        }
+
+        const hit = hits[0];
+
+        if (
+            hit.distance > 5
+        ) {
+            return null;
+        }
+
+        const position =
+            hit.point.clone();
+
+        position.y = 1;
+
+        const normal =
+            hit.face?.normal
+                ?.clone()
+                ?.transformDirection(
+                    hit.object.matrixWorld
+                );
+
+        let rotation = this.yaw;
+
+        if (normal) {
+            rotation =
+                Math.atan2(
+                    normal.x,
+                    normal.z
+                );
+        }
+
+        return {
+            position,
+            rotation
+        };
+    }
+
+    // =========================================================
+    // DART / GUN
+    // =========================================================
+
+    loadGun() {
+        const dart =
+            this.inventory[2];
+
+        const gun =
+            this.inventory[3];
+
+        if (dart.amount <= 0) {
+            this.onMessage("NO DART");
+            return;
+        }
+
+        if (gun.loaded) {
+            this.onMessage("GUN ALREADY LOADED");
+            return;
+        }
+
+        dart.amount--;
+
+        gun.loaded = true;
+
+        this.updateHotbarCount(
+            2,
+            dart.amount
+        );
+
+        const gunSlot =
+            document.querySelector(
+                '.slot[data-slot="3"]'
+            );
+
+        if (gunSlot) {
+            gunSlot.classList.add("loaded");
+        }
+
+        this.onMessage("DART LOADED");
+    }
+
+    fireGun() {
+        const gun =
+            this.inventory[3];
+
+        if (!gun.loaded) {
+            this.onMessage("LOAD THE GUN FIRST");
+            return;
+        }
+
+        const target =
+            this.getTargetPlayer();
+
+        if (!target) {
+            this.onMessage("NO MATCH TARGET");
+            return;
+        }
+
+        gun.loaded = false;
+
+        const gunSlot =
+            document.querySelector(
+                '.slot[data-slot="3"]'
+            );
+
+        if (gunSlot) {
+            gunSlot.classList.remove("loaded");
+        }
+
+        const uid =
+            target.userData?.uid ||
+            "UNKNOWN";
+
+        this.onMessage(
+            `IDENTITY: ${uid}`
+        );
+    }
+
+    // =========================================================
+    // AXE
+    // =========================================================
+
+    useAxe() {
+        const target =
+            this.getTargetSign();
+
+        if (!target) {
+            this.onMessage("NO SIGN TARGET");
+            return;
+        }
+
+        this.world.destroySign(
+            target
+        );
+
+        this.onMessage("SIGN DESTROYED");
+    }
+
+    // =========================================================
+    // SPARK SWITCH
+    // =========================================================
+
+    sparkSwitch() {
+        if (this.role !== "SPARK") {
+            return;
+        }
+
+        const target =
+            this.getTargetPlayer();
+
+        if (!target) {
+            this.onMessage("NO MATCH TARGET");
+            return;
+        }
+
+        if (
+            this.world.switchWithPlayer(
+                target
+            )
+        ) {
+            this.onMessage("LOCATION SWITCHED");
+        }
+    }
+
+    // =========================================================
+    // RAYCASTING
+    // =========================================================
+
+    getTargetPlayer() {
+        this.raycaster.setFromCamera(
+            this.center,
+            this.camera
+        );
+
+        const objects =
+            this.world
+                .getPlayers()
+                .filter(
+                    player => player !== this
+                );
+
+        const hits =
+            this.raycaster.intersectObjects(
+                objects,
+                true
+            );
+
+        for (const hit of hits) {
+            let object =
+                hit.object;
+
+            while (
+                object &&
+                !object.userData?.match
+            ) {
+                object =
+                    object.parent;
+            }
+
+            if (object) {
+                return object;
+            }
+        }
+
+        return null;
+    }
+
+    getTargetSign() {
+        this.raycaster.setFromCamera(
+            this.center,
+            this.camera
+        );
+
+        const hits =
+            this.raycaster.intersectObjects(
+                this.world.getSigns(),
+                true
+            );
+
+        if (hits.length === 0) {
+            return null;
+        }
+
+        let object =
+            hits[0].object;
+
+        while (
+            object &&
+            object.userData?.type !== "sign"
+        ) {
+            object = object.parent;
+        }
+
+        return object || null;
+    }
+
+    // =========================================================
+    // MOUSE
+    // =========================================================
+
+    requestMouse() {
+        if (
+            document.pointerLockElement !==
+            document.body
+        ) {
+            document.body.requestPointerLock();
+        }
+    }
+
+    releaseMouse() {
+        if (
+            document.pointerLockElement
+        ) {
+            document.exitPointerLock();
+        }
+    }
+
+    toggleMouse() {
+        if (
+            document.pointerLockElement
+        ) {
+            this.releaseMouse();
+        } else {
+            this.requestMouse();
+        }
+    }
+
+    // =========================================================
+    // UI
+    // =========================================================
+
+    updateHotbarCount(
+        slotIndex,
+        amount
+    ) {
+        const slot =
+            document.querySelector(
+                `.slot[data-slot="${slotIndex}"]`
+            );
+
+        if (!slot) return;
+
+        const counter =
+            slot.querySelector(
+                ".item-count"
+            );
+
+        if (!counter) return;
+
+        counter.textContent =
+            amount;
+    }
+
+    // =========================================================
+    // CLEANUP
+    // =========================================================
 
     destroy() {
-        this.running = false;
-
-        window.removeEventListener(
-            "resize",
-            this.handleResize
+        document.removeEventListener(
+            "keydown",
+            this.onKeyDown
         );
 
-        this.player.destroy();
-        this.world.destroy();
+        document.removeEventListener(
+            "keyup",
+            this.onKeyUp
+        );
 
-        this.renderer.dispose();
+        document.removeEventListener(
+            "mousedown",
+            this.onMouseDown
+        );
 
-        this.container.innerHTML = "";
+        document.removeEventListener(
+            "mousemove",
+            this.onMouseMove
+        );
+
+        this.world.removePlayer(
+            this
+        );
+
+        this.releaseMouse();
     }
 }
