@@ -8,12 +8,10 @@ export class World {
         this.interactables = [];
         this.signs = [];
         this.players = [];
-
-        this.roomMeshes = [];
-        this.decorations = [];
         this.lights = [];
 
         this.materials = {};
+        this.rooms = {};
 
         this.createMaterials();
         this.createWorld();
@@ -25,98 +23,123 @@ export class World {
 
     createMaterials() {
         this.materials.floor = new THREE.MeshStandardMaterial({
-            color: 0x292a2b,
+            color: 0x242424,
+            roughness: 0.82,
+            metalness: 0.12
+        });
+
+        this.materials.floorDark = new THREE.MeshStandardMaterial({
+            color: 0x151515,
             roughness: 0.9,
             metalness: 0.05
         });
 
-        this.materials.floorDark = new THREE.MeshStandardMaterial({
-            color: 0x171819,
-            roughness: 0.95
-        });
-
         this.materials.wall = new THREE.MeshStandardMaterial({
-            color: 0x56585b,
-            roughness: 0.82
+            color: 0x303236,
+            roughness: 0.72,
+            metalness: 0.2
         });
 
         this.materials.wallDark = new THREE.MeshStandardMaterial({
-            color: 0x202224,
-            roughness: 0.92
-        });
-
-        this.materials.concrete = new THREE.MeshStandardMaterial({
-            color: 0x68696b,
-            roughness: 0.9
-        });
-
-        this.materials.metal = new THREE.MeshStandardMaterial({
-            color: 0x3d4144,
-            metalness: 0.8,
-            roughness: 0.3
-        });
-
-        this.materials.metalDark = new THREE.MeshStandardMaterial({
-            color: 0x181a1c,
-            metalness: 0.75,
-            roughness: 0.4
-        });
-
-        this.materials.wood = new THREE.MeshStandardMaterial({
-            color: 0x6b4630,
-            roughness: 0.85
-        });
-
-        this.materials.red = new THREE.MeshStandardMaterial({
-            color: 0x9b281b,
-            roughness: 0.7
-        });
-
-        this.materials.orange = new THREE.MeshStandardMaterial({
-            color: 0xff682e,
-            emissive: 0x7d1e0b,
-            emissiveIntensity: 1.2
-        });
-
-        this.materials.yellow = new THREE.MeshStandardMaterial({
-            color: 0xffbd4a,
-            emissive: 0x633b08,
-            emissiveIntensity: 0.8
-        });
-
-        this.materials.purple = new THREE.MeshStandardMaterial({
-            color: 0x7350a8,
-            roughness: 0.5
-        });
-
-        this.materials.purpleGlow = new THREE.MeshStandardMaterial({
-            color: 0xb47cff,
-            emissive: 0x6325a0,
-            emissiveIntensity: 1.8,
-            roughness: 0.35
-        });
-
-        this.materials.glass = new THREE.MeshStandardMaterial({
-            color: 0x8da8b5,
-            transparent: true,
-            opacity: 0.35,
-            roughness: 0.12,
+            color: 0x17191b,
+            roughness: 0.82,
             metalness: 0.15
         });
 
+        this.materials.metal = new THREE.MeshStandardMaterial({
+            color: 0x555a60,
+            roughness: 0.38,
+            metalness: 0.82
+        });
+
+        this.materials.darkMetal = new THREE.MeshStandardMaterial({
+            color: 0x202327,
+            roughness: 0.3,
+            metalness: 0.9
+        });
+
+        this.materials.red = new THREE.MeshStandardMaterial({
+            color: 0x8e241b,
+            roughness: 0.5,
+            metalness: 0.35
+        });
+
+        this.materials.orange = new THREE.MeshStandardMaterial({
+            color: 0xd76b25,
+            roughness: 0.42,
+            metalness: 0.25,
+            emissive: 0x351006,
+            emissiveIntensity: 0.35
+        });
+
+        this.materials.yellow = new THREE.MeshStandardMaterial({
+            color: 0xe3b42d,
+            roughness: 0.5,
+            metalness: 0.15
+        });
+
+        this.materials.purple = new THREE.MeshStandardMaterial({
+            color: 0x6f3aa8,
+            roughness: 0.4,
+            metalness: 0.1,
+            emissive: 0x250d45,
+            emissiveIntensity: 0.55
+        });
+
+        this.materials.crystal = new THREE.MeshStandardMaterial({
+            color: 0x9d63e8,
+            roughness: 0.2,
+            metalness: 0.05,
+            emissive: 0x4c167a,
+            emissiveIntensity: 0.7,
+            transparent: true,
+            opacity: 0.88
+        });
+
+        this.materials.blue = new THREE.MeshStandardMaterial({
+            color: 0x356d9c,
+            roughness: 0.35,
+            metalness: 0.4,
+            emissive: 0x0c2032,
+            emissiveIntensity: 0.4
+        });
+
+        this.materials.green = new THREE.MeshStandardMaterial({
+            color: 0x385e43,
+            roughness: 0.8,
+            metalness: 0.05
+        });
+
+        this.materials.wood = new THREE.MeshStandardMaterial({
+            color: 0x67452d,
+            roughness: 0.86,
+            metalness: 0.05
+        });
+
         this.materials.sign = new THREE.MeshStandardMaterial({
-            color: 0xc89a5d,
-            roughness: 0.82
+            color: 0xd5bd83,
+            roughness: 0.95,
+            metalness: 0
         });
 
-        this.materials.grass = new THREE.MeshStandardMaterial({
-            color: 0x26392a,
-            roughness: 1
+        this.materials.glass = new THREE.MeshPhysicalMaterial({
+            color: 0x78a8bb,
+            transparent: true,
+            opacity: 0.28,
+            roughness: 0.1,
+            metalness: 0.1
         });
 
-        this.materials.stone = new THREE.MeshStandardMaterial({
-            color: 0x45464a,
-            roughness: 1
+        this.materials.lava = new THREE.MeshStandardMaterial({
+            color: 0xff4b16,
+            emissive: 0xff2400,
+            emissiveIntensity: 2.2,
+            roughness: 0.4
+        });
+
+        this.materials.white = new THREE.MeshStandardMaterial({
+            color: 0xd7d7d7,
+            roughness: 0.65
         });
     }
 
@@ -125,467 +148,777 @@ export class World {
     // =========================================================
 
     createWorld() {
-        this.createBaseFloor();
+        this.createGround();
 
-        this.createMainRooms();
-        this.createConnectingRooms();
+        /*
+             MAP LAYOUT
 
-        this.createVolcano();
-        this.createDisco();
-        this.createAmethyst();
-        this.createScrapyard();
-        this.createMuseum();
-        this.createGraveyard();
-        this.createMaze();
-        this.createDiningHall();
-        this.createStorage();
-        this.createLounge();
-        this.createViewingLobby();
+                              VOLCANO
+                                 |
+                          ┌──────┴──────┐
+                          │             │
+                          │   ATRIUM    ├───────┐
+                          │             │       │
+                          └──────┬──────┘     ROOM
+                                 │
+                 ┌───────┐      │
+                 │ ROOM  ├──────┘
+                 └───┬───┘
+                     │
+                 ┌───┴───┐
+                 │ ROOM  │
+                 └───┬───┘
+                     │
+                 ┌───┴────────┐
+                 │    ROOM    │
+                 └────────────┘
 
-        this.createDoors();
-        this.createGeneralDecoration();
-        this.createCeilingLights();
-    }
+        The exact visual rooms are built around this structure.
+        */
 
-    // =========================================================
-    // BASE
-    // =========================================================
+        // CENTRAL AREA
+        this.createAtrium(0, 0, 22, 18);
 
-    createBaseFloor() {
-        const floor = this.mesh(
-            new THREE.BoxGeometry(72, 0.5, 62),
-            this.materials.floorDark,
+        // TOP
+        this.createVolcano(0, -24, 15, 15);
+
+        // LEFT CHAIN
+        this.createDisco(-20, -2, 11, 10);
+        this.createAmethyst(-25, 11, 11, 12);
+        this.createScrapyard(-25, 25, 16, 10);
+
+        // LOWER / LEFT
+        this.createMuseum(-5, 27, 15, 10);
+
+        // RIGHT
+        this.createGraveyard(19, -1, 13, 11);
+        this.createMaze(34, 4, 15, 15);
+
+        // LOWER CENTRAL
+        this.createDiningHall(4, 20, 17, 11);
+
+        // LOWER RIGHT
+        this.createStorage(23, 22, 12, 10);
+        this.createLounge(38, 22, 14, 10);
+        this.createViewingLobby(39, 35, 18, 12);
+
+        // CONNECTIONS
+        this.createCorridor(
             0,
-            -0.25,
-            0
+            -13,
+            5,
+            10,
+            "vertical"
         );
 
-        floor.receiveShadow = true;
-        this.addCollider(floor);
-    }
+        this.createCorridor(
+            -12,
+            -2,
+            8,
+            4,
+            "horizontal"
+        );
 
-    // =========================================================
-    // ROOM LAYOUT
-    // =========================================================
+        this.createCorridor(
+            -25,
+            4,
+            4,
+            8,
+            "vertical"
+        );
 
-    createMainRooms() {
-        // Central atrium
-        this.createRoom(
-            "ATRIUM",
+        this.createCorridor(
+            -25,
             18,
+            4,
+            8,
+            "vertical"
+        );
+
+        this.createCorridor(
+            -13,
+            23,
+            10,
+            4,
+            "horizontal"
+        );
+
+        this.createCorridor(
             14,
-            0,
-            0,
-            this.materials.concrete
-        );
-
-        // Upper / north rooms
-        this.createRoom(
-            "VOLCANO",
-            12,
+            -1,
             10,
-            0,
-            -13,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "DISCO",
-            10,
-            9,
-            -15,
-            -13,
-            this.materials.wallDark
-        );
-
-        // Western chain
-        this.createRoom(
-            "AMETHYST",
-            9,
-            9,
-            -17,
-            0,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "SCRAPYARD",
-            10,
-            9,
-            -17,
-            13,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "MUSEUM",
-            13,
-            9,
-            -5,
-            15,
-            this.materials.wallDark
-        );
-
-        // Eastern chain
-        this.createRoom(
-            "GRAVEYARD",
-            11,
-            9,
-            15,
-            0,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "MAZE",
-            12,
-            10,
-            19,
-            13,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "DINING",
-            12,
-            9,
-            19,
-            -13,
-            this.materials.wallDark
-        );
-    }
-
-    createConnectingRooms() {
-        this.createRoom(
-            "STORAGE",
-            8,
-            7,
-            -7,
-            -13,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "LOUNGE",
-            8,
-            7,
-            8,
-            14,
-            this.materials.wallDark
-        );
-
-        this.createRoom(
-            "VIEWING",
-            8,
-            7,
-            8,
-            -14,
-            this.materials.wallDark
-        );
-
-        // Narrow corridors
-        this.createCorridor(
-            0,
-            -7,
-            3,
-            7
+            4,
+            "horizontal"
         );
 
         this.createCorridor(
-            -9,
-            0,
-            7,
-            3
+            28,
+            4,
+            10,
+            4,
+            "horizontal"
         );
 
         this.createCorridor(
-            -9,
-            7,
-            3,
-            8
-        );
-
-        this.createCorridor(
-            9,
-            0,
-            7,
-            3
+            4,
+            10,
+            4,
+            10,
+            "vertical"
         );
 
         this.createCorridor(
             15,
-            7,
-            3,
-            8
-        );
-
-        this.createCorridor(
+            22,
             8,
-            -7,
-            3,
-            7
+            4,
+            "horizontal"
         );
 
         this.createCorridor(
-            -5,
-            13,
-            7,
-            3
+            30,
+            22,
+            10,
+            4,
+            "horizontal"
         );
 
         this.createCorridor(
-            12,
-            13,
-            7,
-            3
+            39,
+            28,
+            4,
+            8,
+            "vertical"
         );
+
+        this.createLighting();
+        this.createSpawnArea();
     }
 
     // =========================================================
-    // ROOM BUILDER
+    // BASIC BUILDING
     // =========================================================
 
-    createRoom(name, width, depth, x, z, floorMaterial) {
-        const floor = this.mesh(
-            new THREE.BoxGeometry(width, 0.25, depth),
-            floorMaterial,
-            x,
-            0.05,
-            z
+    createGround() {
+        const ground = new THREE.Mesh(
+            new THREE.BoxGeometry(110, 0.5, 90),
+            this.materials.floorDark
         );
 
-        floor.receiveShadow = true;
+        ground.position.set(5, -0.3, 12);
+        ground.receiveShadow = true;
 
-        this.roomMeshes.push(floor);
+        this.scene.add(ground);
 
-        const wallHeight = 4;
+        this.colliders.push(ground);
+    }
 
-        const north = this.mesh(
-            new THREE.BoxGeometry(width, wallHeight, 0.35),
-            this.materials.wall,
-            x,
-            wallHeight / 2,
-            z - depth / 2
+    addBox(
+        geometry,
+        material,
+        x,
+        y,
+        z,
+        {
+            collider = false,
+            castShadow = true,
+            receiveShadow = true
+        } = {}
+    ) {
+        const mesh = new THREE.Mesh(
+            geometry,
+            material
         );
 
-        const south = this.mesh(
-            new THREE.BoxGeometry(width, wallHeight, 0.35),
-            this.materials.wall,
-            x,
-            wallHeight / 2,
-            z + depth / 2
-        );
+        mesh.position.set(x, y, z);
 
-        const west = this.mesh(
-            new THREE.BoxGeometry(0.35, wallHeight, depth),
-            this.materials.wall,
-            x - width / 2,
-            wallHeight / 2,
-            z
-        );
+        mesh.castShadow = castShadow;
+        mesh.receiveShadow = receiveShadow;
 
-        const east = this.mesh(
-            new THREE.BoxGeometry(0.35, wallHeight, depth),
-            this.materials.wall,
-            x + width / 2,
-            wallHeight / 2,
-            z
-        );
+        this.scene.add(mesh);
 
-        for (const wall of [north, south, west, east]) {
-            wall.castShadow = true;
-            wall.receiveShadow = true;
-            this.addCollider(wall);
+        if (collider) {
+            this.colliders.push(mesh);
         }
 
-        floor.userData.room = name;
+        return mesh;
+    }
 
-        return {
+    wall(x, z, width, depth, height = 3.4) {
+        return this.addBox(
+            new THREE.BoxGeometry(
+                width,
+                height,
+                depth
+            ),
+            this.materials.wall,
+            x,
+            height / 2,
+            z,
+            {
+                collider: true
+            }
+        );
+    }
+
+    floor(x, z, width, depth, material = this.materials.floor) {
+        return this.addBox(
+            new THREE.BoxGeometry(
+                width,
+                0.18,
+                depth
+            ),
+            material,
+            x,
+            0.05,
+            z,
+            {
+                collider: true
+            }
+        );
+    }
+
+    // =========================================================
+    // ROOM WITH DOOR OPENINGS
+    // =========================================================
+
+    createRoomBase(
+        name,
+        x,
+        z,
+        width,
+        depth,
+        floorMaterial = this.materials.floor
+    ) {
+        this.rooms[name] = {
             name,
             x,
             z,
             width,
             depth
         };
+
+        this.floor(
+            x,
+            z,
+            width,
+            depth,
+            floorMaterial
+        );
+
+        const t = 0.6;
+        const h = 3.4;
+
+        // North wall
+        this.wall(
+            x,
+            z - depth / 2,
+            width,
+            t,
+            h
+        );
+
+        // South wall
+        this.wall(
+            x,
+            z + depth / 2,
+            width,
+            t,
+            h
+        );
+
+        // West wall
+        this.wall(
+            x - width / 2,
+            z,
+            t,
+            depth,
+            h
+        );
+
+        // East wall
+        this.wall(
+            x + width / 2,
+            z,
+            t,
+            depth,
+            h
+        );
+
+        // Door-frame accents
+        this.addDoorFrames(
+            x,
+            z - depth / 2 + 0.1,
+            width,
+            "horizontal"
+        );
+
+        return this.rooms[name];
     }
 
-    createCorridor(x, z, width, depth) {
-        const floor = this.mesh(
-            new THREE.BoxGeometry(width, 0.2, depth),
-            this.materials.floor,
+    addDoorFrames(x, z, width, direction) {
+        const postHeight = 3;
+
+        if (direction === "horizontal") {
+            this.addBox(
+                new THREE.BoxGeometry(
+                    0.25,
+                    postHeight,
+                    0.25
+                ),
+                this.materials.red,
+                x - 2,
+                postHeight / 2,
+                z,
+                { collider: false }
+            );
+
+            this.addBox(
+                new THREE.BoxGeometry(
+                    0.25,
+                    postHeight,
+                    0.25
+                ),
+                this.materials.red,
+                x + 2,
+                postHeight / 2,
+                z,
+                { collider: false }
+            );
+        }
+    }
+
+    // =========================================================
+    // CORRIDORS
+    // =========================================================
+
+    createCorridor(
+        x,
+        z,
+        width,
+        depth,
+        direction = "horizontal"
+    ) {
+        this.floor(
             x,
-            0.05,
+            z,
+            width,
+            depth,
+            this.materials.floor
+        );
+
+        const h = 3.2;
+        const t = 0.5;
+
+        if (direction === "horizontal") {
+            this.wall(
+                x,
+                z - depth / 2,
+                width,
+                t,
+                h
+            );
+
+            this.wall(
+                x,
+                z + depth / 2,
+                width,
+                t,
+                h
+            );
+        } else {
+            this.wall(
+                x - width / 2,
+                z,
+                t,
+                depth,
+                h
+            );
+
+            this.wall(
+                x + width / 2,
+                z,
+                t,
+                depth,
+                h
+            );
+        }
+
+        // Ceiling light strips
+        const light = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                direction === "horizontal"
+                    ? width - 1
+                    : 0.35,
+                0.08,
+                direction === "horizontal"
+                    ? 0.35
+                    : depth - 1
+            ),
+            this.materials.white
+        );
+
+        light.position.set(
+            x,
+            3.12,
             z
         );
 
-        floor.receiveShadow = true;
+        light.material.emissive = new THREE.Color(
+            0xeeeeee
+        );
+
+        light.material.emissiveIntensity = 1.5;
+
+        this.scene.add(light);
+    }
+
+    // =========================================================
+    // ATRIUM
+    // =========================================================
+
+    createAtrium(x, z, width, depth) {
+        this.createRoomBase(
+            "Atrium",
+            x,
+            z,
+            width,
+            depth
+        );
+
+        const platform = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                5,
+                5.4,
+                0.5,
+                32
+            ),
+            this.materials.darkMetal
+        );
+
+        platform.position.set(
+            x,
+            0.32,
+            z
+        );
+
+        platform.castShadow = true;
+        platform.receiveShadow = true;
+
+        this.scene.add(platform);
+        this.colliders.push(platform);
+
+        // Central glowing column
+        const column = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                0.75,
+                0.75,
+                6,
+                24
+            ),
+            this.materials.glass
+        );
+
+        column.position.set(
+            x,
+            3,
+            z
+        );
+
+        this.scene.add(column);
+
+        // Rings
+        for (let i = 0; i < 3; i++) {
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(
+                    1.2 + i * 0.5,
+                    0.06,
+                    8,
+                    32
+                ),
+                this.materials.orange
+            );
+
+            ring.position.set(
+                x,
+                1.5 + i * 1.4,
+                z
+            );
+
+            ring.rotation.x = Math.PI / 2;
+
+            this.scene.add(ring);
+        }
+
+        // Atrium lights
+        const light = new THREE.PointLight(
+            0xff7733,
+            10,
+            24
+        );
+
+        light.position.set(
+            x,
+            4,
+            z
+        );
+
+        this.scene.add(light);
+        this.lights.push(light);
     }
 
     // =========================================================
     // VOLCANO
     // =========================================================
 
-    createVolcano() {
-        const x = 0;
-        const z = -13;
-
-        const crater = new THREE.Mesh(
-            new THREE.CylinderGeometry(3.5, 4.5, 0.8, 16),
-            this.materials.metalDark
+    createVolcano(x, z, width, depth) {
+        this.createRoomBase(
+            "Volcano",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.darkMetal
         );
 
-        crater.position.set(x, 0.5, z);
-        crater.castShadow = true;
-
-        this.scene.add(crater);
-        this.addCollider(crater);
-
+        // Lava pit
         const lava = new THREE.Mesh(
-            new THREE.CylinderGeometry(2.7, 2.7, 0.12, 24),
-            this.materials.orange
+            new THREE.CylinderGeometry(
+                4.5,
+                5.2,
+                0.4,
+                32
+            ),
+            this.materials.lava
         );
 
-        lava.position.set(x, 0.95, z);
+        lava.position.set(
+            x,
+            0.35,
+            z
+        );
 
         this.scene.add(lava);
 
-        const lavaLight = new THREE.PointLight(
-            0xff4a18,
-            8,
-            12
-        );
+        this.colliders.push(lava);
 
-        lavaLight.position.set(x, 2, z);
-        this.scene.add(lavaLight);
-        this.lights.push(lavaLight);
+        // Industrial towers
+        for (let i = 0; i < 6; i++) {
+            const angle =
+                (i / 6) * Math.PI * 2;
 
+            const px =
+                x + Math.cos(angle) * 5;
+
+            const pz =
+                z + Math.sin(angle) * 5;
+
+            this.addBox(
+                new THREE.BoxGeometry(
+                    0.8,
+                    4 + (i % 2),
+                    0.8
+                ),
+                this.materials.metal,
+                px,
+                2,
+                pz,
+                {
+                    collider: true
+                }
+            );
+        }
+
+        // Pipes
         for (let i = 0; i < 5; i++) {
-            const pipe = this.createCylinder(
-                0.18,
-                3.5,
-                this.materials.metal
+            const pipe = new THREE.Mesh(
+                new THREE.CylinderGeometry(
+                    0.14,
+                    0.14,
+                    8,
+                    10
+                ),
+                this.materials.orange
             );
 
             pipe.position.set(
-                x - 4 + i * 2,
-                1.8,
-                z + 3
+                x - 5 + i * 2.5,
+                2.5,
+                z - 5.5
             );
 
-            pipe.rotation.z = Math.PI / 2;
+            pipe.rotation.z =
+                Math.PI / 2;
 
             this.scene.add(pipe);
-            this.addCollider(pipe);
         }
+
+        const light = new THREE.PointLight(
+            0xff3c0a,
+            16,
+            22
+        );
+
+        light.position.set(
+            x,
+            3,
+            z
+        );
+
+        this.scene.add(light);
+        this.lights.push(light);
     }
 
     // =========================================================
     // DISCO
     // =========================================================
 
-    createDisco() {
-        const x = -15;
-        const z = -13;
-
-        const floor = this.mesh(
-            new THREE.BoxGeometry(6, 0.15, 5),
-            this.materials.black,
+    createDisco(x, z, width, depth) {
+        this.createRoomBase(
+            "Disco",
             x,
-            0.15,
-            z
+            z,
+            width,
+            depth,
+            this.materials.floorDark
         );
 
-        this.createNeonStrip(x - 2.8, 0.3, z);
-        this.createNeonStrip(x + 2.8, 0.3, z);
+        // Dance floor
+        const tileSize = 1;
 
-        const discoBall = new THREE.Mesh(
-            new THREE.SphereGeometry(0.8, 16, 16),
-            this.materials.metal
-        );
+        for (let ix = -4; ix <= 4; ix++) {
+            for (let iz = -3; iz <= 3; iz++) {
+                const tile = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        tileSize - 0.04,
+                        0.12,
+                        tileSize - 0.04
+                    ),
+                    [
+                        this.materials.red,
+                        this.materials.blue,
+                        this.materials.purple,
+                        this.materials.yellow
+                    ][
+                        (ix + iz + 20) % 4
+                    ]
+                );
 
-        discoBall.position.set(x, 3.3, z);
+                tile.position.set(
+                    x + ix,
+                    0.15,
+                    z + iz
+                );
 
-        this.scene.add(discoBall);
+                this.scene.add(tile);
+            }
+        }
 
-        const lightColors = [
-            0xff3344,
-            0x33aaff,
-            0xcc44ff,
-            0x44ff99
-        ];
-
-        lightColors.forEach((color, i) => {
-            const light = new THREE.PointLight(
-                color,
+        // DJ booth
+        this.addBox(
+            new THREE.BoxGeometry(
                 4,
-                10
-            );
-
-            light.position.set(
-                x + Math.cos(i * 1.57) * 3,
-                2.8,
-                z + Math.sin(i * 1.57) * 3
-            );
-
-            this.scene.add(light);
-            this.lights.push(light);
-        });
-    }
-
-    createNeonStrip(x, y, z) {
-        const strip = this.mesh(
-            new THREE.BoxGeometry(0.12, 0.12, 5),
-            this.materials.red,
+                1,
+                1.2
+            ),
+            this.materials.darkMetal,
             x,
-            y,
+            0.55,
+            z - 3.8,
+            {
+                collider: true
+            }
+        );
+
+        // Speakers
+        for (const sx of [-4, 4]) {
+            this.addBox(
+                new THREE.BoxGeometry(
+                    1,
+                    2.6,
+                    1
+                ),
+                this.materials.darkMetal,
+                x + sx,
+                1.3,
+                z - 3.2,
+                {
+                    collider: true
+                }
+            );
+        }
+
+        const light = new THREE.PointLight(
+            0xa84cff,
+            8,
+            18
+        );
+
+        light.position.set(
+            x,
+            3,
             z
         );
 
-        strip.material.emissive = new THREE.Color(0x55100a);
-        strip.material.emissiveIntensity = 2;
+        this.scene.add(light);
+        this.lights.push(light);
     }
 
     // =========================================================
     // AMETHYST
     // =========================================================
 
-    createAmethyst() {
-        const x = -17;
-        const z = 0;
+    createAmethyst(x, z, width, depth) {
+        this.createRoomBase(
+            "Amethyst",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.wallDark
+        );
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 26; i++) {
             const crystal = new THREE.Mesh(
-                new THREE.ConeGeometry(
-                    0.35 + Math.random() * 0.3,
-                    1.5 + Math.random() * 1.7,
+                new THREE.CylinderGeometry(
+                    0.25 + Math.random() * 0.4,
+                    0.45,
+                    1.5 + Math.random() * 3,
                     6
                 ),
-                this.materials.purpleGlow
+                this.materials.crystal
             );
 
             crystal.position.set(
-                x + (Math.random() - 0.5) * 6,
+                x - width / 2 + 1 +
+                    Math.random() * (width - 2),
                 0.9,
-                z + (Math.random() - 0.5) * 6
+                z - depth / 2 + 1 +
+                    Math.random() * (depth - 2)
             );
 
-            crystal.rotation.z =
-                (Math.random() - 0.5) * 0.4;
-
             crystal.rotation.x =
-                (Math.random() - 0.5) * 0.3;
+                (Math.random() - 0.5) * 0.7;
+
+            crystal.rotation.z =
+                (Math.random() - 0.5) * 0.7;
+
+            crystal.castShadow = true;
 
             this.scene.add(crystal);
-            this.decorations.push(crystal);
         }
 
         const light = new THREE.PointLight(
-            0x8c4dff,
-            6,
-            12
+            0x963cff,
+            10,
+            18
         );
 
-        light.position.set(x, 2.5, z);
+        light.position.set(
+            x,
+            2,
+            z
+        );
 
         this.scene.add(light);
         this.lights.push(light);
@@ -595,154 +928,283 @@ export class World {
     // SCRAPYARD
     // =========================================================
 
-    createScrapyard() {
-        const x = -17;
-        const z = 13;
+    createScrapyard(x, z, width, depth) {
+        this.createRoomBase(
+            "Scrapyard",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.floorDark
+        );
 
-        for (let i = 0; i < 15; i++) {
-            const size = 0.7 + Math.random() * 1;
+        for (let i = 0; i < 24; i++) {
+            const size =
+                0.7 + Math.random() * 1.3;
 
-            const scrap = this.mesh(
+            const scrap = new THREE.Mesh(
                 new THREE.BoxGeometry(
                     size,
-                    size * 0.7,
+                    size,
                     size
                 ),
-                this.materials.metal,
-                x + (Math.random() - 0.5) * 7,
-                size * 0.35,
-                z + (Math.random() - 0.5) * 6
+                i % 3 === 0
+                    ? this.materials.red
+                    : this.materials.metal
             );
 
-            scrap.rotation.y =
-                Math.random() * Math.PI;
+            scrap.position.set(
+                x - width / 2 + 1 +
+                    Math.random() * (width - 2),
+                size / 2,
+                z - depth / 2 + 1 +
+                    Math.random() * (depth - 2)
+            );
+
+            scrap.rotation.set(
+                Math.random(),
+                Math.random(),
+                Math.random()
+            );
 
             scrap.castShadow = true;
 
-            this.addCollider(scrap);
+            this.scene.add(scrap);
+            this.colliders.push(scrap);
         }
+
+        // Crane
+        this.addBox(
+            new THREE.BoxGeometry(
+                0.5,
+                5,
+                0.5
+            ),
+            this.materials.darkMetal,
+            x - 5,
+            2.5,
+            z + 3,
+            {
+                collider: true
+            }
+        );
+
+        this.addBox(
+            new THREE.BoxGeometry(
+                8,
+                0.4,
+                0.5
+            ),
+            this.materials.darkMetal,
+            x - 1,
+            5,
+            z + 3,
+            {
+                collider: true
+            }
+        );
     }
 
     // =========================================================
     // MUSEUM
     // =========================================================
 
-    createMuseum() {
-        const x = -5;
-        const z = 15;
+    createMuseum(x, z, width, depth) {
+        this.createRoomBase(
+            "Museum",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.white
+        );
 
-        for (let i = 0; i < 4; i++) {
-            const display = this.mesh(
+        // Display cases
+        for (let i = -5; i <= 5; i += 2.5) {
+            const caseMesh = new THREE.Mesh(
                 new THREE.BoxGeometry(
                     1.8,
-                    1.2,
-                    1.4
+                    1.4,
+                    1.2
                 ),
-                this.materials.glass,
-                x - 4 + i * 2.5,
-                0.7,
+                this.materials.glass
+            );
+
+            caseMesh.position.set(
+                x + i,
+                0.8,
                 z
             );
 
-            display.material.transparent = true;
+            this.scene.add(caseMesh);
 
-            this.addCollider(display);
+            this.colliders.push(caseMesh);
 
             const exhibit = new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    0.6,
-                    0.8,
-                    0.6
+                new THREE.DodecahedronGeometry(
+                    0.45
                 ),
-                i % 2 === 0
-                    ? this.materials.red
-                    : this.materials.purple
+                this.materials.orange
             );
 
             exhibit.position.set(
-                x - 4 + i * 2.5,
-                1.25,
+                x + i,
+                1.7,
                 z
             );
 
             this.scene.add(exhibit);
         }
+
+        // Statue
+        const statue = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                0.7,
+                1,
+                2.5,
+                10
+            ),
+            this.materials.metal
+        );
+
+        statue.position.set(
+            x,
+            1.3,
+            z - 3
+        );
+
+        this.scene.add(statue);
+        this.colliders.push(statue);
     }
 
     // =========================================================
     // GRAVEYARD
     // =========================================================
 
-    createGraveyard() {
-        const x = 15;
-        const z = 0;
-
-        for (let i = 0; i < 12; i++) {
-            const grave = this.mesh(
-                new THREE.BoxGeometry(
-                    0.65,
-                    0.9,
-                    0.2
-                ),
-                this.materials.stone,
-                x + (Math.random() - 0.5) * 8,
-                0.45,
-                z + (Math.random() - 0.5) * 6
-            );
-
-            grave.rotation.y =
-                (Math.random() - 0.5) * 0.15;
-
-            this.addCollider(grave);
-        }
-
-        const tree = this.mesh(
-            new THREE.CylinderGeometry(
-                0.45,
-                0.65,
-                4,
-                8
-            ),
-            this.materials.wood,
-            x + 3,
-            2,
-            z - 2
+    createGraveyard(x, z, width, depth) {
+        this.createRoomBase(
+            "Graveyard",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.green
         );
 
-        this.addCollider(tree);
+        // Dirt patches
+        for (let i = 0; i < 5; i++) {
+            const mound = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    1.1,
+                    12,
+                    6
+                ),
+                this.materials.wood
+            );
+
+            mound.scale.y = 0.35;
+
+            mound.position.set(
+                x - 4 + i * 2,
+                0.25,
+                z
+            );
+
+            this.scene.add(mound);
+        }
+
+        // Gravestones
+        for (let i = 0; i < 10; i++) {
+            const stone = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.8,
+                    1.4,
+                    0.3
+                ),
+                this.materials.white
+            );
+
+            stone.position.set(
+                x - width / 2 + 2 +
+                    Math.random() * (width - 4),
+                0.75,
+                z - depth / 2 + 2 +
+                    Math.random() * (depth - 4)
+            );
+
+            stone.rotation.y =
+                (Math.random() - 0.5) * 0.5;
+
+            stone.castShadow = true;
+
+            this.scene.add(stone);
+            this.colliders.push(stone);
+        }
     }
 
     // =========================================================
     // MAZE
     // =========================================================
 
-    createMaze() {
-        const x = 19;
-        const z = 13;
+    createMaze(x, z, width, depth) {
+        this.createRoomBase(
+            "Maze",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.floorDark
+        );
 
-        const walls = [
-            [0, -3, 7, 0.35],
-            [-3, 0, 0.35, 6],
-            [3, 1, 0.35, 6],
-            [-1, 3, 5, 0.35],
-            [0, -0.5, 0.35, 4],
-            [2, -2, 0.35, 3]
+        const wallHeight = 2.5;
+        const wallThickness = 0.45;
+        const cell = 2.4;
+
+        const maze = [
+            "1111111",
+            "1000001",
+            "1011101",
+            "1010001",
+            "1010111",
+            "1000001",
+            "1111111"
         ];
 
-        for (const [ox, oz, width, depth] of walls) {
-            const wall = this.mesh(
-                new THREE.BoxGeometry(
-                    width,
-                    2.4,
-                    depth
-                ),
-                this.materials.wallDark,
-                x + ox,
-                1.2,
-                z + oz
-            );
+        for (let row = 0; row < maze.length; row++) {
+            for (
+                let col = 0;
+                col < maze[row].length;
+                col++
+            ) {
+                if (maze[row][col] !== "1") {
+                    continue;
+                }
 
-            this.addCollider(wall);
+                const px =
+                    x - 7 +
+                    col * cell;
+
+                const pz =
+                    z - 7 +
+                    row * cell;
+
+                const wall = this.addBox(
+                    new THREE.BoxGeometry(
+                        cell,
+                        wallHeight,
+                        cell
+                    ),
+                    this.materials.wallDark,
+                    px,
+                    wallHeight / 2,
+                    pz,
+                    {
+                        collider: true
+                    }
+                );
+
+                wall.castShadow = true;
+            }
         }
     }
 
@@ -750,57 +1212,127 @@ export class World {
     // DINING HALL
     // =========================================================
 
-    createDiningHall() {
-        const x = 19;
-        const z = -13;
-
-        for (let i = 0; i < 2; i++) {
-            this.createTable(
-                x - 3 + i * 6,
-                z,
-                4,
-                1.5
-            );
-        }
-
-        const counter = this.mesh(
-            new THREE.BoxGeometry(
-                7,
-                1.2,
-                0.8
-            ),
-            this.materials.wood,
+    createDiningHall(x, z, width, depth) {
+        this.createRoomBase(
+            "Dining Hall",
             x,
-            0.6,
-            z - 3
+            z,
+            width,
+            depth,
+            this.materials.floor
         );
 
-        this.addCollider(counter);
+        for (let row = -1; row <= 1; row++) {
+            const table = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    5,
+                    0.25,
+                    1.4
+                ),
+                this.materials.wood
+            );
+
+            table.position.set(
+                x,
+                1,
+                z + row * 3
+            );
+
+            this.scene.add(table);
+            this.colliders.push(table);
+
+            for (const sx of [-1.8, 1.8]) {
+                for (const sz of [-0.45, 0.45]) {
+                    this.addBox(
+                        new THREE.BoxGeometry(
+                            0.18,
+                            1,
+                            0.18
+                        ),
+                        this.materials.wood,
+                        x + sx,
+                        0.5,
+                        z + row * 3 + sz,
+                        {
+                            collider: true
+                        }
+                    );
+                }
+            }
+        }
+
+        // Kitchen counter
+        this.addBox(
+            new THREE.BoxGeometry(
+                3,
+                1.2,
+                5
+            ),
+            this.materials.metal,
+            x + 5,
+            0.6,
+            z,
+            {
+                collider: true
+            }
+        );
     }
 
     // =========================================================
     // STORAGE
     // =========================================================
 
-    createStorage() {
-        const x = -7;
-        const z = -13;
+    createStorage(x, z, width, depth) {
+        this.createRoomBase(
+            "Storage",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.floorDark
+        );
 
-        for (let row = 0; row < 2; row++) {
-            for (let i = 0; i < 4; i++) {
-                const shelf = this.mesh(
+        for (let row = -1; row <= 1; row++) {
+            for (let col = -1; col <= 1; col++) {
+                const shelf = new THREE.Mesh(
                     new THREE.BoxGeometry(
-                        0.9,
-                        2,
-                        1.2
+                        2.5,
+                        2.5,
+                        0.5
                     ),
-                    this.materials.wood,
-                    x - 3 + i * 2,
-                    1,
-                    z + row * 2 - 1
+                    this.materials.metal
                 );
 
-                this.addCollider(shelf);
+                shelf.position.set(
+                    x + col * 3.5,
+                    1.25,
+                    z + row * 3
+                );
+
+                this.scene.add(shelf);
+                this.colliders.push(shelf);
+
+                for (let i = 0; i < 3; i++) {
+                    const crate = new THREE.Mesh(
+                        new THREE.BoxGeometry(
+                            0.7,
+                            0.7,
+                            0.7
+                        ),
+                        this.materials.wood
+                    );
+
+                    crate.position.set(
+                        shelf.position.x +
+                            (Math.random() - 0.5),
+                        0.5 + i * 0.7,
+                        shelf.position.z -
+                            0.5
+                    );
+
+                    this.scene.add(crate);
+                    this.colliders.push(crate);
+                }
             }
         }
     }
@@ -809,380 +1341,377 @@ export class World {
     // LOUNGE
     // =========================================================
 
-    createLounge() {
-        const x = 8;
-        const z = 14;
-
-        const sofa = this.mesh(
-            new THREE.BoxGeometry(
-                4,
-                0.8,
-                1.3
-            ),
-            this.materials.red,
+    createLounge(x, z, width, depth) {
+        this.createRoomBase(
+            "Lounge",
             x,
-            0.5,
+            z,
+            width,
+            depth,
+            this.materials.floor
+        );
+
+        // Sofas
+        for (const sx of [-4, 4]) {
+            const sofa = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    4,
+                    1,
+                    1.5
+                ),
+                this.materials.red
+            );
+
+            sofa.position.set(
+                x + sx,
+                0.6,
+                z
+            );
+
+            this.scene.add(sofa);
+            this.colliders.push(sofa);
+        }
+
+        // Table
+        const table = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                1.3,
+                1.3,
+                0.25,
+                24
+            ),
+            this.materials.darkMetal
+        );
+
+        table.position.set(
+            x,
+            0.8,
             z
         );
 
-        this.addCollider(sofa);
+        this.scene.add(table);
+        this.colliders.push(table);
 
-        const table = this.mesh(
-            new THREE.BoxGeometry(
-                2,
-                0.35,
-                1.2
+        // Plant
+        const pot = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                0.6,
+                0.45,
+                0.8,
+                12
             ),
-            this.materials.wood,
-            x,
-            0.7,
-            z + 2
+            this.materials.wood
         );
 
-        this.addCollider(table);
+        pot.position.set(
+            x,
+            0.4,
+            z + 3
+        );
+
+        this.scene.add(pot);
+
+        const leaves = new THREE.Mesh(
+            new THREE.SphereGeometry(
+                1.2,
+                12,
+                8
+            ),
+            this.materials.green
+        );
+
+        leaves.position.set(
+            x,
+            1.7,
+            z + 3
+        );
+
+        this.scene.add(leaves);
     }
 
     // =========================================================
     // VIEWING LOBBY
     // =========================================================
 
-    createViewingLobby() {
-        const x = 8;
-        const z = -14;
+    createViewingLobby(x, z, width, depth) {
+        this.createRoomBase(
+            "Viewing Lobby",
+            x,
+            z,
+            width,
+            depth,
+            this.materials.darkMetal
+        );
 
-        const window = this.mesh(
+        // Huge viewing window
+        const window = new THREE.Mesh(
             new THREE.BoxGeometry(
-                6,
-                2.8,
-                0.12
+                width - 2,
+                3.2,
+                0.15
             ),
-            this.materials.glass,
+            this.materials.glass
+        );
+
+        window.position.set(
             x,
             2,
-            z - 3
+            z - depth / 2 + 0.3
         );
 
-        window.material.emissive =
-            new THREE.Color(0x15242d);
+        this.scene.add(window);
 
-        window.material.emissiveIntensity = 0.5;
-
-        // Large object visible beyond the glass.
-        const structure = this.mesh(
-            new THREE.CylinderGeometry(
-                3,
-                4,
-                7,
-                12
-            ),
-            this.materials.metalDark,
-            x,
-            3,
-            z - 7
-        );
-
-        this.addCollider(structure);
-    }
-
-    // =========================================================
-    // TABLE
-    // =========================================================
-
-    createTable(x, z, width, height) {
-        const top = this.mesh(
-            new THREE.BoxGeometry(
-                width,
-                0.3,
-                2
-            ),
-            this.materials.wood,
-            x,
-            height,
-            z
-        );
-
-        this.addCollider(top);
-
-        const legPositions = [
-            [-width / 2 + 0.25, -0.7],
-            [width / 2 - 0.25, -0.7],
-            [-width / 2 + 0.25, 0.7],
-            [width / 2 - 0.25, 0.7]
-        ];
-
-        for (const [lx, lz] of legPositions) {
-            const leg = this.mesh(
+        // Window frame
+        for (let i = -3; i <= 3; i++) {
+            const frame = new THREE.Mesh(
                 new THREE.BoxGeometry(
-                    0.25,
-                    height,
+                    0.12,
+                    3.3,
                     0.25
                 ),
-                this.materials.metal,
-                x + lx,
-                height / 2,
-                z + lz
+                this.materials.metal
             );
 
-            this.addCollider(leg);
-        }
-    }
-
-    // =========================================================
-    // DOORS
-    // =========================================================
-
-    createDoors() {
-        const doors = [
-            [0, -6.7, 2.5, 0.25],
-            [-9, 0, 0.25, 2.5],
-            [9, 0, 0.25, 2.5],
-            [15, 7, 0.25, 2.5]
-        ];
-
-        for (const [x, z, width, depth] of doors) {
-            const door = this.mesh(
-                new THREE.BoxGeometry(
-                    width,
-                    3,
-                    depth
-                ),
-                this.materials.metalDark,
-                x,
-                1.5,
-                z
+            frame.position.set(
+                x + i * 2.3,
+                2,
+                z - depth / 2 + 0.1
             );
 
-            door.userData.type = "door";
-            door.userData.locked = false;
-
-            this.interactables.push(door);
+            this.scene.add(frame);
         }
-    }
 
-    // =========================================================
-    // GENERAL DECORATION
-    // =========================================================
-
-    createGeneralDecoration() {
-        for (const [x, z] of [
-            [-27, -26],
-            [27, -25],
-            [-27, 26],
-            [27, 26]
-        ]) {
-            this.createCrate(x, z, 1.6);
-        }
-    }
-
-    createCrate(x, z, size) {
-        const crate = this.mesh(
-            new THREE.BoxGeometry(
-                size,
-                size,
-                size
+        // Huge object outside
+        const outside = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(
+                8,
+                2
             ),
-            this.materials.wood,
-            x,
-            size / 2,
-            z
+            this.materials.darkMetal
         );
 
-        crate.userData.type = "crate";
-        crate.userData.interactable = true;
+        outside.position.set(
+            x,
+            1,
+            z - depth / 2 - 8
+        );
 
-        this.addCollider(crate);
-        this.interactables.push(crate);
+        this.scene.add(outside);
+
+        // Interior bench
+        this.addBox(
+            new THREE.BoxGeometry(
+                8,
+                0.7,
+                1
+            ),
+            this.materials.red,
+            x,
+            0.5,
+            z + 3,
+            {
+                collider: true
+            }
+        );
     }
 
     // =========================================================
     // LIGHTING
     // =========================================================
 
-    createCeilingLights() {
-        const positions = [
-            [-18, -20],
-            [0, -20],
-            [18, -20],
-            [-18, 0],
+    createLighting() {
+        const ceilingPositions = [
             [0, 0],
-            [18, 0],
-            [-18, 20],
-            [0, 20],
-            [18, 20]
+            [-20, -2],
+            [-25, 11],
+            [-25, 25],
+            [-5, 27],
+            [19, -1],
+            [34, 4],
+            [4, 20],
+            [23, 22],
+            [38, 22],
+            [39, 35]
         ];
 
-        for (const [x, z] of positions) {
+        for (const [x, z] of ceilingPositions) {
             const light = new THREE.PointLight(
-                0xffd9ad,
-                2.2,
-                14,
-                2
+                0xffd5b5,
+                2.5,
+                12
             );
 
             light.position.set(
                 x,
-                3.6,
+                3,
                 z
             );
 
             this.scene.add(light);
             this.lights.push(light);
+        }
+    }
 
-            const fixture = this.mesh(
-                new THREE.BoxGeometry(
-                    0.8,
-                    0.12,
-                    0.8
-                ),
-                this.materials.yellow,
-                x,
-                3.95,
-                z
+    // =========================================================
+    // SPAWN
+    // =========================================================
+
+    createSpawnArea() {
+        const spawn = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                1.2,
+                1.2,
+                0.12,
+                24
+            ),
+            this.materials.orange
+        );
+
+        spawn.position.set(
+            0,
+            0.12,
+            4
+        );
+
+        this.scene.add(spawn);
+    }
+
+    // =========================================================
+    // COLLISION
+    // =========================================================
+
+    getCollisionBox(object) {
+        const box =
+            new THREE.Box3().setFromObject(
+                object
             );
 
-            fixture.material.emissiveIntensity = 1.5;
+        return box;
+    }
+
+    canMoveTo(
+        position,
+        radius = 0.35,
+        height = 1.8
+    ) {
+        const playerBox =
+            new THREE.Box3(
+                new THREE.Vector3(
+                    position.x - radius,
+                    0.05,
+                    position.z - radius
+                ),
+                new THREE.Vector3(
+                    position.x + radius,
+                    height,
+                    position.z + radius
+                )
+            );
+
+        for (
+            const collider of this.colliders
+        ) {
+            if (!collider) continue;
+
+            const box =
+                this.getCollisionBox(
+                    collider
+                );
+
+            if (
+                playerBox.intersectsBox(
+                    box
+                )
+            ) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     // =========================================================
     // SIGNS
     // =========================================================
 
-    placeSign(position, rotationY = 0) {
-        const placement = this.validateSignPlacement(
-            position,
-            rotationY
-        );
-
-        if (!placement.valid) {
+    placeSign(
+        position,
+        rotationY = 0
+    ) {
+        if (
+            this.signs.length >= 48
+        ) {
             return null;
         }
 
-        const group = new THREE.Group();
+        const sign =
+            new THREE.Group();
 
-        group.position.copy(placement.position);
-        group.rotation.y = rotationY;
+        sign.position.copy(position);
 
-        const board = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                1.25,
-                0.8,
-                0.08
-            ),
-            this.materials.sign
-        );
+        sign.position.y = 1;
+
+        sign.rotation.y =
+            rotationY;
+
+        const board =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    1.25,
+                    0.8,
+                    0.08
+                ),
+                this.materials.sign
+            );
 
         board.castShadow = true;
-        board.receiveShadow = true;
 
-        group.add(board);
+        sign.add(board);
 
-        const post = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                0.08,
-                0.8,
-                0.08
-            ),
-            this.materials.wood
-        );
+        const post =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.08,
+                    0.8,
+                    0.08
+                ),
+                this.materials.wood
+            );
 
         post.position.y = -0.7;
 
-        group.add(post);
+        sign.add(post);
 
-        group.userData.type = "sign";
-        group.userData.playerCreated = true;
-        group.userData.owner = "LOCAL";
+        sign.userData.type =
+            "sign";
 
-        this.scene.add(group);
+        sign.userData.playerCreated =
+            true;
 
-        this.signs.push(group);
+        sign.userData.owner =
+            "LOCAL";
 
-        return group;
+        this.scene.add(sign);
+
+        this.signs.push(sign);
+
+        return sign;
     }
 
-    validateSignPlacement(position, rotationY) {
-        const pos = position.clone();
-
-        // Signs must sit on the floor.
-        pos.y = 1.0;
-
-        const halfWidth = 0.7;
-        const halfDepth = 0.08;
-
-        const box = new THREE.Box3(
-            new THREE.Vector3(
-                pos.x - halfWidth,
-                0,
-                pos.z - halfDepth
-            ),
-            new THREE.Vector3(
-                pos.x + halfWidth,
-                1.8,
-                pos.z + halfDepth
-            )
-        );
-
-        // Don't put signs inside walls or furniture.
-        for (const collider of this.colliders) {
-            if (!collider) continue;
-
-            const colliderBox =
-                new THREE.Box3().setFromObject(collider);
-
-            if (box.intersectsBox(colliderBox)) {
-                return {
-                    valid: false
-                };
-            }
-        }
-
-        // Don't stack signs directly on one another.
-        for (const sign of this.signs) {
-            const distance = new THREE.Vector2(
-                sign.position.x,
-                sign.position.z
-            ).distanceTo(
-                new THREE.Vector2(
-                    pos.x,
-                    pos.z
-                )
-            );
-
-            if (distance < 1.2) {
-                return {
-                    valid: false
-                };
-            }
-        }
-
-        return {
-            valid: true,
-            position: pos
-        };
-    }
-
-    destroySign(sign) {
-        if (!sign) return;
-
+    removeSign(sign) {
         const index =
             this.signs.indexOf(sign);
 
-        if (index !== -1) {
-            this.signs.splice(index, 1);
+        if (index === -1) {
+            return;
         }
 
+        this.signs.splice(
+            index,
+            1
+        );
+
         this.scene.remove(sign);
-
-        sign.traverse(object => {
-            if (object.geometry) {
-                object.geometry.dispose();
-            }
-        });
-    }
-
-    getSigns() {
-        return this.signs;
     }
 
     // =========================================================
@@ -1190,9 +1719,9 @@ export class World {
     // =========================================================
 
     addPlayer(player) {
-        if (!player) return;
-
-        if (!this.players.includes(player)) {
+        if (
+            !this.players.includes(player)
+        ) {
             this.players.push(player);
         }
     }
@@ -1202,7 +1731,10 @@ export class World {
             this.players.indexOf(player);
 
         if (index !== -1) {
-            this.players.splice(index, 1);
+            this.players.splice(
+                index,
+                1
+            );
         }
     }
 
@@ -1211,116 +1743,15 @@ export class World {
     }
 
     // =========================================================
-    // COLLISION
+    // RAYCASTING HELPERS
     // =========================================================
-
-    addCollider(object) {
-        if (!object) return;
-
-        object.userData.collider = true;
-
-        this.colliders.push(object);
-    }
 
     getColliders() {
         return this.colliders;
     }
 
-    getCollisionBox(object) {
-        return new THREE.Box3().setFromObject(object);
-    }
-
-    canMoveTo(position, radius = 0.35, height = 1.8) {
-        const playerBox = new THREE.Box3(
-            new THREE.Vector3(
-                position.x - radius,
-                0.05,
-                position.z - radius
-            ),
-            new THREE.Vector3(
-                position.x + radius,
-                height,
-                position.z + radius
-            )
-        );
-
-        for (const collider of this.colliders) {
-            if (!collider) continue;
-
-            const box =
-                this.getCollisionBox(collider);
-
-            if (playerBox.intersectsBox(box)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // =========================================================
-    // SPARK SWITCH
-    // =========================================================
-
-    switchWithPlayer(target) {
-        if (!target) return false;
-
-        const localPlayer =
-            this.players.find(
-                player =>
-                    player.userData?.local === true
-            );
-
-        if (!localPlayer) return false;
-
-        const localPosition =
-            localPlayer.position.clone();
-
-        localPlayer.position.copy(
-            target.position
-        );
-
-        target.position.copy(
-            localPosition
-        );
-
-        return true;
-    }
-
-    // =========================================================
-    // HELPERS
-    // =========================================================
-
-    mesh(geometry, material, x, y, z) {
-        const mesh = new THREE.Mesh(
-            geometry,
-            material
-        );
-
-        mesh.position.set(
-            x,
-            y,
-            z
-        );
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
-        this.scene.add(mesh);
-
-        return mesh;
-    }
-
-    createCylinder(radius, height, material) {
-        return new THREE.Mesh(
-            new THREE.CylinderGeometry(
-                radius,
-                radius,
-                height,
-                12
-            ),
-            material
-        );
+    getInteractables() {
+        return this.interactables;
     }
 
     // =========================================================
@@ -1328,11 +1759,39 @@ export class World {
     // =========================================================
 
     update(delta) {
-        // Future:
-        // - Flicker event
-        // - animated lights
-        // - doors
-        // - multiplayer interpolation
+        // Animated lava
+        const lavaObjects =
+            this.scene.children.filter(
+                object =>
+                    object.material ===
+                    this.materials.lava
+            );
+
+        for (
+            const lava of lavaObjects
+        ) {
+            lava.scale.y =
+                1 +
+                Math.sin(
+                    performance.now() *
+                    0.002
+                ) *
+                0.025;
+        }
+
+        // Slight crystal movement
+        for (
+            const child
+            of this.scene.children
+        ) {
+            if (
+                child.material ===
+                this.materials.crystal
+            ) {
+                child.rotation.y +=
+                    delta * 0.08;
+            }
+        }
     }
 
     // =========================================================
@@ -1340,28 +1799,17 @@ export class World {
     // =========================================================
 
     destroy() {
-        for (const sign of [...this.signs]) {
-            this.destroySign(sign);
-        }
-
-        for (const object of this.scene.children.slice()) {
-            if (object === this.scene) continue;
-
-            if (
-                object.userData?.worldObject ||
-                this.colliders.includes(object) ||
-                this.decorations.includes(object)
-            ) {
-                this.scene.remove(object);
-            }
+        for (
+            const object
+            of [...this.scene.children]
+        ) {
+            this.scene.remove(object);
         }
 
         this.colliders = [];
         this.interactables = [];
         this.signs = [];
         this.players = [];
-        this.roomMeshes = [];
-        this.decorations = [];
         this.lights = [];
     }
 }
