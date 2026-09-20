@@ -1754,6 +1754,10 @@ export class World {
         return this.interactables;
     }
 
+    getSigns() {
+    return this.signs;
+    }
+
     // =========================================================
     // UPDATE
     // =========================================================
