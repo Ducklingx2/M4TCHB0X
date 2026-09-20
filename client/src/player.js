@@ -310,28 +310,62 @@ export class Player {
     }
 
    tryMove(dx, dy, dz) {
-    const testPosition = this.position.clone();
+    const nextX = this.position.clone();
+    nextX.x += dx;
 
-    // ---------------------------------------------------------
-    // X movement
-    // ---------------------------------------------------------
-
-    testPosition.x += dx;
-
-    if (this.canOccupy(testPosition)) {
-        this.position.x = testPosition.x;
+    if (this.canOccupy(nextX)) {
+        this.position.x = nextX.x;
     }
 
-    // ---------------------------------------------------------
-    // Z movement
-    // ---------------------------------------------------------
+    const nextZ = this.position.clone();
+    nextZ.z += dz;
 
-    testPosition.copy(this.position);
-    testPosition.z += dz;
-
-    if (this.canOccupy(testPosition)) {
-        this.position.z = testPosition.z;
+    if (this.canOccupy(nextZ)) {
+        this.position.z = nextZ.z;
     }
+}
+
+    canOccupy(position) {
+    const colliders = this.world.getColliders();
+
+    if (!colliders || colliders.length === 0) {
+        return true;
+    }
+
+    const playerBox = new THREE.Box3(
+        new THREE.Vector3(
+            position.x - this.radius,
+            position.y,
+            position.z - this.radius
+        ),
+        new THREE.Vector3(
+            position.x + this.radius,
+            position.y + this.height,
+            position.z + this.radius
+        )
+    );
+
+    for (const collider of colliders) {
+        if (!collider || !collider.visible) {
+            continue;
+        }
+
+        const colliderBox =
+            new THREE.Box3().setFromObject(collider);
+
+        if (
+            colliderBox.max.y <= playerBox.min.y ||
+            colliderBox.min.y >= playerBox.max.y
+        ) {
+            continue;
+        }
+
+        if (playerBox.intersectsBox(colliderBox)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
     jump() {
