@@ -309,39 +309,30 @@ export class Player {
         }
     }
 
-    tryMove(dx, dy, dz) {
-        const nextX =
-            this.position.clone();
+   tryMove(dx, dy, dz) {
+    const testPosition = this.position.clone();
 
-        nextX.x += dx;
+    // ---------------------------------------------------------
+    // X movement
+    // ---------------------------------------------------------
 
-        if (
-            this.world.canMoveTo(
-                nextX,
-                this.radius,
-                this.height
-            )
-        ) {
-            this.position.x =
-                nextX.x;
-        }
+    testPosition.x += dx;
 
-        const nextZ =
-            this.position.clone();
-
-        nextZ.z += dz;
-
-        if (
-            this.world.canMoveTo(
-                nextZ,
-                this.radius,
-                this.height
-            )
-        ) {
-            this.position.z =
-                nextZ.z;
-        }
+    if (this.canOccupy(testPosition)) {
+        this.position.x = testPosition.x;
     }
+
+    // ---------------------------------------------------------
+    // Z movement
+    // ---------------------------------------------------------
+
+    testPosition.copy(this.position);
+    testPosition.z += dz;
+
+    if (this.canOccupy(testPosition)) {
+        this.position.z = testPosition.z;
+    }
+}
 
     jump() {
         if (!this.grounded) return;
