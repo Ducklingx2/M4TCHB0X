@@ -9,9 +9,11 @@ export class World {
         this.signs = [];
         this.players = [];
 
-        this.materials = {};
+        this.groups = [];
 
+        this.materials = {};
         this.createMaterials();
+
         this.createWorld();
     }
 
@@ -20,99 +22,63 @@ export class World {
     // =========================================================
 
     createMaterials() {
-        this.materials.floor =
+        const mat = (color, roughness = 0.8, metalness = 0) =>
             new THREE.MeshStandardMaterial({
-                color: 0x353535,
-                roughness: 0.85
+                color,
+                roughness,
+                metalness
             });
 
-        this.materials.wall =
-            new THREE.MeshStandardMaterial({
-                color: 0x565656,
-                roughness: 0.8
-            });
+        this.materials.floor = mat(0x292b2d, 0.9);
+        this.materials.floorLight = mat(0x3b3e40, 0.85);
+        this.materials.wall = mat(0x45484b, 0.82);
+        this.materials.wallDark = mat(0x202224, 0.9);
+        this.materials.ceiling = mat(0x17191a, 0.9);
 
-        this.materials.wallDark =
-            new THREE.MeshStandardMaterial({
-                color: 0x242424,
-                roughness: 0.9
-            });
+        this.materials.metal = mat(0x687075, 0.3, 0.8);
+        this.materials.darkMetal = mat(0x292d30, 0.3, 0.9);
+        this.materials.blackMetal = mat(0x101214, 0.25, 0.95);
 
-        this.materials.metal =
-            new THREE.MeshStandardMaterial({
-                color: 0x4b4f52,
-                metalness: 0.7,
-                roughness: 0.32
-            });
+        this.materials.red = mat(0xa72d22, 0.6);
+        this.materials.yellow = mat(0xd59b26, 0.55);
+        this.materials.orange = mat(0xd95c25, 0.55);
 
-        this.materials.darkMetal =
-            new THREE.MeshStandardMaterial({
-                color: 0x202326,
-                metalness: 0.8,
-                roughness: 0.25
-            });
+        this.materials.wood = mat(0x68442b, 0.9);
+        this.materials.woodLight = mat(0x9a6a3e, 0.85);
 
-        this.materials.wood =
-            new THREE.MeshStandardMaterial({
-                color: 0x69472f,
-                roughness: 0.9
-            });
-
-        this.materials.red =
-            new THREE.MeshStandardMaterial({
-                color: 0x9d2c20,
-                roughness: 0.65
-            });
-
-        this.materials.black =
-            new THREE.MeshStandardMaterial({
-                color: 0x090909,
-                roughness: 0.8
+        this.materials.glass =
+            new THREE.MeshPhysicalMaterial({
+                color: 0x9ebfc7,
+                transparent: true,
+                opacity: 0.32,
+                roughness: 0.1,
+                metalness: 0.2
             });
 
         this.materials.amethyst =
             new THREE.MeshStandardMaterial({
-                color: 0x8755bd,
-                emissive: 0x281238,
-                emissiveIntensity: 0.45,
-                roughness: 0.45
-            });
-
-        this.materials.disco =
-            new THREE.MeshStandardMaterial({
-                color: 0x15151a,
-                roughness: 0.35,
-                metalness: 0.5
+                color: 0x8d54c4,
+                emissive: 0x32104c,
+                emissiveIntensity: 0.8,
+                roughness: 0.35
             });
 
         this.materials.lava =
             new THREE.MeshStandardMaterial({
-                color: 0xff4a16,
-                emissive: 0xff2600,
-                emissiveIntensity: 2,
-                roughness: 0.4
+                color: 0xff5418,
+                emissive: 0xff2800,
+                emissiveIntensity: 2.2,
+                roughness: 0.35
             });
 
-        this.materials.glass =
-            new THREE.MeshPhysicalMaterial({
-                color: 0x9fb8c2,
-                transparent: true,
-                opacity: 0.32,
-                roughness: 0.12,
-                metalness: 0.15
-            });
+        this.materials.green = mat(0x354c38, 0.95);
 
-        this.materials.sign =
-            new THREE.MeshStandardMaterial({
-                color: 0xc49a63,
-                roughness: 0.85
-            });
+        this.materials.bookRed = mat(0x87352f);
+        this.materials.bookBlue = mat(0x38527d);
+        this.materials.bookGreen = mat(0x3c684b);
+        this.materials.bookYellow = mat(0xa98235);
 
-        this.materials.grass =
-            new THREE.MeshStandardMaterial({
-                color: 0x303c2e,
-                roughness: 1
-            });
+        this.materials.sign = mat(0xb98b54, 0.85);
     }
 
     // =========================================================
@@ -120,251 +86,266 @@ export class World {
     // =========================================================
 
     createWorld() {
-        this.createFloor();
+        this.createGround();
 
-        this.createRoom(
-            "Atrium",
-            0,
-            0,
-            20,
-            18
-        );
+        /*
+            MAP
 
-        this.createRoom(
-            "Volcano",
-            0,
-            -19,
-            12,
-            12
-        );
+                         VOLCANO
+                            │
+                  DISCO ─ ATRIUM ─ LIBRARY ─ MAZE
+                            │
+                         AMETHYST
+                            │
+                        SCRAPYARD
+                            │
+                         MUSEUM
+                            │
+                      DINING HALL
+                            │
+                    STORAGE ─ LOUNGE
 
-        this.createRoom(
-            "Disco",
-            -18,
-            -10,
-            11,
-            10
-        );
-
-        this.createRoom(
-            "Amethyst",
-            -20,
-            5,
-            12,
-            11
-        );
-
-        this.createRoom(
-            "Scrapyard",
-            -20,
-            18,
-            12,
-            10
-        );
-
-        this.createRoom(
-            "Museum",
-            -8,
-            24,
-            14,
-            9
-        );
-
-        this.createRoom(
-            "Dining Hall",
-            5,
-            24,
-            12,
-            9
-        );
-
-        this.createRoom(
-            "Library",
-            18,
-            2,
-            12,
-            12
-        );
-
-        this.createRoom(
-            "Maze",
-            28,
-            5,
-            13,
-            14
-        );
-
-        this.createRoom(
-            "Storage",
-            18,
-            18,
-            11,
-            9
-        );
-
-        this.createRoom(
-            "Lounge",
-            26,
-            25,
-            12,
-            9
-        );
-
-        this.createRoom(
-            "Viewing Lobby",
-            19,
-            -12,
-            13,
-            8
-        );
+                  VIEWING LOBBY
+                         ╲
+                       ATRIUM
+        */
 
         this.createAtrium();
+
         this.createVolcano();
         this.createDisco();
         this.createAmethyst();
         this.createScrapyard();
         this.createMuseum();
         this.createDiningHall();
+
         this.createLibrary();
         this.createMaze();
         this.createStorage();
         this.createLounge();
         this.createViewingLobby();
 
-        this.createLighting();
-        this.createDetails();
+        this.createConnections();
+        this.createGlobalLighting();
     }
 
     // =========================================================
-    // FLOOR
+    // BASIC GEOMETRY
     // =========================================================
 
-    createFloor() {
-        const floor = new THREE.Mesh(
+    addMesh(
+        geometry,
+        material,
+        x = 0,
+        y = 0,
+        z = 0,
+        options = {}
+    ) {
+        const mesh = new THREE.Mesh(
+            geometry,
+            material
+        );
+
+        mesh.position.set(x, y, z);
+
+        if (options.rotation) {
+            mesh.rotation.set(
+                options.rotation.x || 0,
+                options.rotation.y || 0,
+                options.rotation.z || 0
+            );
+        }
+
+        mesh.castShadow =
+            options.castShadow !== false;
+
+        mesh.receiveShadow =
+            options.receiveShadow !== false;
+
+        this.scene.add(mesh);
+
+        if (options.collider) {
+            this.colliders.push(mesh);
+        }
+
+        return mesh;
+    }
+
+    box(
+        x,
+        y,
+        z,
+        sx,
+        sy,
+        sz,
+        material,
+        collider = false
+    ) {
+        return this.addMesh(
             new THREE.BoxGeometry(
-                75,
-                0.2,
-                70
+                sx,
+                sy,
+                sz
             ),
+            material,
+            x,
+            y,
+            z,
+            { collider }
+        );
+    }
+
+    cylinder(
+        x,
+        y,
+        z,
+        radius,
+        height,
+        material,
+        segments = 16,
+        collider = false
+    ) {
+        return this.addMesh(
+            new THREE.CylinderGeometry(
+                radius,
+                radius,
+                height,
+                segments
+            ),
+            material,
+            x,
+            y,
+            z,
+            { collider }
+        );
+    }
+
+    // =========================================================
+    // GROUND
+    // =========================================================
+
+    createGround() {
+        this.box(
+            5,
+            -0.15,
+            5,
+            70,
+            0.3,
+            70,
             this.materials.floor
         );
 
-        floor.position.set(
-            4,
-            -0.1,
-            4
-        );
+        const grid =
+            new THREE.GridHelper(
+                70,
+                70,
+                0x484b4d,
+                0x202224
+            );
 
-        floor.receiveShadow = true;
+        grid.position.y = 0.01;
 
-        this.scene.add(floor);
+        this.scene.add(grid);
     }
 
     // =========================================================
-    // ROOM SHELL
+    // ROOM BUILDER
     // =========================================================
 
-    createRoom(
-        name,
-        x,
-        z,
-        width,
-        depth
-    ) {
-        const height = 5;
-        const thickness = 0.5;
-
-        this.createWall(
-            x,
-            z - depth / 2,
-            width,
-            thickness,
-            height
-        );
-
-        this.createWall(
-            x,
-            z + depth / 2,
-            width,
-            thickness,
-            height
-        );
-
-        this.createWall(
-            x - width / 2,
-            z,
-            thickness,
-            depth,
-            height
-        );
-
-        this.createWall(
-            x + width / 2,
-            z,
-            thickness,
-            depth,
-            height
-        );
-
-        this.createRoomSign(
-            name,
-            x,
-            z - depth / 2 + 0.08
-        );
-    }
-
-    createWall(
+    room(
         x,
         z,
         width,
         depth,
         height = 5
     ) {
-        return this.addBox(
-            width,
+        const group = new THREE.Group();
+
+        this.scene.add(group);
+
+        // floor
+        const floor = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                width,
+                0.18,
+                depth
+            ),
+            this.materials.floorLight
+        );
+
+        floor.position.set(
+            x,
+            0.09,
+            z
+        );
+
+        floor.receiveShadow = true;
+        group.add(floor);
+
+        // ceiling
+        const ceiling = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                width,
+                0.2,
+                depth
+            ),
+            this.materials.ceiling
+        );
+
+        ceiling.position.set(
+            x,
             height,
+            z
+        );
+
+        group.add(ceiling);
+
+        return {
+            group,
+            x,
+            z,
+            width,
             depth,
+            height
+        };
+    }
+
+    wall(
+        x,
+        z,
+        width,
+        depth,
+        height = 5,
+        material = this.materials.wall
+    ) {
+        return this.box(
             x,
             height / 2,
             z,
-            this.materials.wall
+            width,
+            height,
+            depth,
+            material,
+            true
         );
     }
 
-    // =========================================================
-    // DOORS / CONNECTIONS
-    // =========================================================
-
-    createDoor(
+    pillar(
         x,
         z,
-        horizontal = true,
-        width = 3
+        height = 5,
+        radius = 0.3
     ) {
-        const wallLength = 10;
-        const thickness = 0.5;
-        const height = 5;
-
-        const sideLength =
-            (wallLength - width) / 2;
-
-        if (horizontal) {
-            this.createWall(
-                x - (width + sideLength) / 2,
-                z,
-                sideLength,
-                thickness,
-                height
-            );
-
-            this.createWall(
-                x + (width + sideLength) / 2,
-                z,
-                sideLength,
-                thickness,
-                height
-            );
-        }
+        return this.cylinder(
+            x,
+            height / 2,
+            z,
+            radius,
+            height,
+            this.materials.metal,
+            12,
+            true
+        );
     }
 
     // =========================================================
@@ -372,61 +353,192 @@ export class World {
     // =========================================================
 
     createAtrium() {
-        const platform = new THREE.Mesh(
-            new THREE.BoxGeometry(
+        const x = 0;
+        const z = 0;
+        const w = 20;
+        const d = 18;
+
+        this.room(
+            x,
+            z,
+            w,
+            d,
+            8
+        );
+
+        // Walls with large openings toward branches.
+        this.wall(-9.75, 0, 0.5, 18, 8);
+        this.wall(9.75, 5.5, 0.5, 7, 8);
+        this.wall(9.75, -5.5, 0.5, 7, 8);
+
+        this.wall(0, 8.75, 20, 0.5, 8);
+
+        this.wall(
+            -6.5,
+            -8.75,
+            7,
+            0.5,
+            8
+        );
+
+        this.wall(
+            6.5,
+            -8.75,
+            7,
+            0.5,
+            8
+        );
+
+        // central raised platform
+        this.box(
+            0,
+            0.35,
+            0,
+            7,
+            0.7,
+            5,
+            this.materials.darkMetal,
+            true
+        );
+
+        // central structure
+        this.box(
+            0,
+            2.0,
+            0,
+            5.5,
+            3.2,
+            2.6,
+            this.materials.red,
+            true
+        );
+
+        // black central stripe
+        this.box(
+            0,
+            2.0,
+            0,
+            0.18,
+            3.25,
+            2.7,
+            this.materials.blackMetal
+        );
+
+        // Atrium pillars
+        for (const px of [-8, 8]) {
+            for (const pz of [-6, 6]) {
+                this.pillar(
+                    px,
+                    pz,
+                    8,
+                    0.38
+                );
+            }
+        }
+
+        // upper balconies
+        this.createBalcony(
+            -6,
+            -5,
+            5,
+            1.8
+        );
+
+        this.createBalcony(
+            6,
+            5,
+            5,
+            1.8
+        );
+
+        // railings
+        this.createRail(
+            -6,
+            -4.1,
+            5,
+            0
+        );
+
+        this.createRail(
+            6,
+            5.9,
+            5,
+            Math.PI
+        );
+
+        // hanging lights
+        for (let i = -6; i <= 6; i += 3) {
+            this.createHangingLamp(
+                i,
+                6.7,
+                0
+            );
+        }
+
+        // benches
+        this.createBench(
+            -6,
+            1.2,
+            -1.8
+        );
+
+        this.createBench(
+            6,
+            1.2,
+            1.8
+        );
+
+        this.roomLabel(
+            "ATRIUM",
+            0,
+            -8.4
+        );
+    }
+
+    createBalcony(
+        x,
+        z,
+        width,
+        depth
+    ) {
+        this.box(
+            x,
+            2.8,
+            z,
+            width,
+            0.35,
+            depth,
+            this.materials.darkMetal,
+            true
+        );
+
+        for (
+            let i = -width / 2;
+            i <= width / 2;
+            i += 1
+        ) {
+            this.cylinder(
+                x + i,
+                3.7,
+                z - depth / 2,
+                0.06,
+                1.8,
+                this.materials.metal,
                 8,
-                0.3,
-                6
-            ),
-            this.materials.darkMetal
+                true
+            );
+        }
+
+        this.box(
+            x,
+            4.55,
+            z - depth / 2,
+            width,
+            0.1,
+            0.1,
+            this.materials.metal,
+            true
         );
-
-        platform.position.set(
-            0,
-            0.15,
-            0
-        );
-
-        platform.receiveShadow = true;
-
-        this.scene.add(platform);
-
-        // Central matchbox
-        const box = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                6,
-                2,
-                2.8
-            ),
-            this.materials.red
-        );
-
-        box.position.set(
-            0,
-            1.15,
-            0
-        );
-
-        box.castShadow = true;
-
-        this.scene.add(box);
-
-        const stripe = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                0.15,
-                2.05,
-                2.9
-            ),
-            this.materials.black
-        );
-
-        stripe.position.set(
-            0,
-            1.15,
-            0
-        );
-
-        this.scene.add(stripe);
     }
 
     // =========================================================
@@ -434,61 +546,137 @@ export class World {
     // =========================================================
 
     createVolcano() {
-        const lava = new THREE.Mesh(
-            new THREE.CylinderGeometry(
-                3.5,
-                4.5,
-                0.35,
-                32
-            ),
-            this.materials.lava
+        const r = this.room(
+            0,
+            -18,
+            13,
+            12,
+            7
         );
 
-        lava.position.set(
+        this.createOpenRoomWalls(
+            r,
+            ["south"]
+        );
+
+        // lava pit
+        this.cylinder(
             0,
+            0.18,
+            -18,
+            3.3,
+            0.3,
+            this.materials.lava,
+            32
+        );
+
+        // machinery
+        for (let x = -5; x <= 5; x += 2.5) {
+            this.createTank(
+                x,
+                -20.8
+            );
+        }
+
+        // pipes
+        for (let i = 0; i < 5; i++) {
+            this.createPipe(
+                -5 + i * 2.5,
+                2.8,
+                -14.8,
+                2.5
+            );
+        }
+
+        // catwalk
+        this.box(
+            0,
+            2.2,
+            -21.8,
+            9,
+            0.25,
+            1.3,
+            this.materials.metal,
+            true
+        );
+
+        this.createRail(
+            0,
+            -22.4,
+            9,
+            0
+        );
+
+        this.createPointLight(
+            0,
+            3,
+            -18,
+            0xff4918,
+            9,
+            14
+        );
+
+        this.roomLabel(
+            "VOLCANO",
+            0,
+            -23.4
+        );
+    }
+
+    createTank(x, z) {
+        this.cylinder(
+            x,
+            1.2,
+            z,
+            0.7,
+            2.4,
+            this.materials.darkMetal,
+            16,
+            true
+        );
+
+        this.cylinder(
+            x,
+            2.5,
+            z,
+            0.45,
             0.2,
-            -19
+            this.materials.yellow,
+            16
         );
 
-        this.scene.add(lava);
-
-        const light =
-            new THREE.PointLight(
-                0xff4b18,
-                8,
-                15
-            );
-
-        light.position.set(
-            0,
-            2,
-            -19
+        this.createPipe(
+            x,
+            3,
+            z,
+            1.2
         );
+    }
 
-        this.scene.add(light);
-
-        for (let i = 0; i < 6; i++) {
-            const pipe = new THREE.Mesh(
-                new THREE.CylinderGeometry(
-                    0.15,
-                    0.15,
-                    3,
-                    12
-                ),
-                this.materials.metal
+    createPipe(
+        x,
+        y,
+        z,
+        length,
+        horizontal = true
+    ) {
+        const pipe =
+            this.cylinder(
+                x,
+                y,
+                z,
+                0.11,
+                length,
+                this.materials.metal,
+                10
             );
 
-            pipe.position.set(
-                -4 + i * 1.5,
-                1.5,
-                -21
-            );
-
+        if (horizontal) {
             pipe.rotation.z =
                 Math.PI / 2;
-
-            this.scene.add(pipe);
         }
+
+        return pipe;
     }
 
     // =========================================================
@@ -496,72 +684,132 @@ export class World {
     // =========================================================
 
     createDisco() {
-        const floor = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                7,
-                0.08,
-                6
-            ),
-            this.materials.black
+        const r = this.room(
+            -16,
+            -10,
+            10,
+            9,
+            6
         );
 
-        floor.position.set(
-            -18,
-            0.08,
-            -10
+        this.createOpenRoomWalls(
+            r,
+            ["east"]
         );
 
-        this.scene.add(floor);
-
-        for (let x = -20; x <= -16; x += 2) {
-            for (let z = -12; z <= -8; z += 2) {
-                const tile = new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        1.6,
-                        0.08,
-                        1.6
-                    ),
+        // dance floor
+        for (let x = -19; x <= -13; x += 2) {
+            for (let z = -13; z <= -7; z += 2) {
+                this.box(
+                    x,
+                    0.08,
+                    z,
+                    1.7,
+                    0.12,
+                    1.7,
                     new THREE.MeshStandardMaterial({
                         color:
-                            Math.random() > 0.5
-                                ? 0x38243f
-                                : 0x252a42,
+                            ((x + z) / 2) % 2
+                                ? 0x4d315d
+                                : 0x263b61,
                         emissive:
-                            Math.random() > 0.5
-                                ? 0x24102c
-                                : 0x10182e,
+                            ((x + z) / 2) % 2
+                                ? 0x291333
+                                : 0x10203a,
                         emissiveIntensity: 1
                     })
                 );
-
-                tile.position.set(
-                    x,
-                    0.13,
-                    z
-                );
-
-                this.scene.add(tile);
             }
         }
 
-        for (let i = 0; i < 4; i++) {
-            const light =
-                new THREE.PointLight(
-                    i % 2
-                        ? 0x7c54ff
-                        : 0xff3c7a,
-                    4,
-                    9
-                );
+        // DJ booth
+        this.box(
+            -16,
+            1,
+            -13.2,
+            5,
+            1.5,
+            0.8,
+            this.materials.blackMetal,
+            true
+        );
 
-            light.position.set(
-                -21 + i * 2,
-                3.5,
-                -12
+        // speakers
+        for (const x of [-20, -12]) {
+            this.createSpeaker(
+                x,
+                1.7,
+                -12.8
             );
-
-            this.scene.add(light);
         }
+
+        // disco ball
+        this.cylinder(
+            -16,
+            4.8,
+            -10,
+            0.7,
+            0.7,
+            this.materials.metal,
+            24
+        );
+
+        this.createPointLight(
+            -16,
+            4,
+            -10,
+            0x774cff,
+            6,
+            10
+        );
+
+        this.createPointLight(
+            -19,
+            3,
+            -8,
+            0xff2d68,
+            4,
+            8
+        );
+
+        this.roomLabel(
+            "DISCO",
+            -16,
+            -14.2
+        );
+    }
+
+    createSpeaker(x, y, z) {
+        this.box(
+            x,
+            y,
+            z,
+            1,
+            2.2,
+            0.8,
+            this.materials.blackMetal,
+            true
+        );
+
+        this.cylinder(
+            x,
+            y + 0.2,
+            z - 0.42,
+            0.28,
+            0.15,
+            this.materials.metal,
+            20
+        );
+
+        this.cylinder(
+            x,
+            y - 0.6,
+            z - 0.42,
+            0.38,
+            0.15,
+            this.materials.metal,
+            20
+        );
     }
 
     // =========================================================
@@ -569,20 +817,34 @@ export class World {
     // =========================================================
 
     createAmethyst() {
-        for (let i = 0; i < 16; i++) {
-            const crystal = new THREE.Mesh(
-                new THREE.ConeGeometry(
-                    0.35 + Math.random() * 0.35,
-                    1.5 + Math.random() * 2,
-                    6
-                ),
-                this.materials.amethyst
-            );
+        const r = this.room(
+            -19,
+            1,
+            11,
+            11,
+            5.5
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["east", "south"]
+        );
+
+        for (let i = 0; i < 28; i++) {
+            const crystal =
+                new THREE.Mesh(
+                    new THREE.ConeGeometry(
+                        0.25 + Math.random() * 0.45,
+                        1 + Math.random() * 2.5,
+                        6
+                    ),
+                    this.materials.amethyst
+                );
 
             crystal.position.set(
-                -24 + Math.random() * 8,
-                0.8 + Math.random() * 0.4,
-                1 + Math.random() * 8
+                -24.2 + Math.random() * 10,
+                0.5 + Math.random() * 0.3,
+                -3.5 + Math.random() * 9
             );
 
             crystal.rotation.y =
@@ -592,6 +854,21 @@ export class World {
 
             this.scene.add(crystal);
         }
+
+        this.createPointLight(
+            -19,
+            3,
+            1,
+            0x8b4dff,
+            7,
+            13
+        );
+
+        this.roomLabel(
+            "AMETHYST",
+            -19,
+            -4.3
+        );
     }
 
     // =========================================================
@@ -599,37 +876,89 @@ export class World {
     // =========================================================
 
     createScrapyard() {
-        for (let i = 0; i < 14; i++) {
-            const size =
-                0.7 + Math.random() * 1.4;
+        const r = this.room(
+            -18,
+            13,
+            13,
+            9,
+            5
+        );
 
-            const scrap = new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    size,
-                    size,
-                    size
-                ),
-                this.materials.darkMetal
+        this.createOpenRoomWalls(
+            r,
+            ["north", "south"]
+        );
+
+        for (let i = 0; i < 25; i++) {
+            this.createScrapPiece(
+                -23 + Math.random() * 10,
+                0.3 + Math.random() * 1.2,
+                10 + Math.random() * 6
             );
-
-            scrap.position.set(
-                -24 + Math.random() * 8,
-                size / 2,
-                15 + Math.random() * 6
-            );
-
-            scrap.rotation.set(
-                Math.random(),
-                Math.random(),
-                Math.random()
-            );
-
-            scrap.castShadow = true;
-
-            this.scene.add(scrap);
-
-            this.colliders.push(scrap);
         }
+
+        for (let x = -23; x <= -13; x += 2) {
+            this.createTire(
+                x,
+                1,
+                15
+            );
+        }
+
+        this.roomLabel(
+            "SCRAPYARD",
+            -18,
+            17.2
+        );
+    }
+
+    createScrapPiece(x, y, z) {
+        const size =
+            0.4 + Math.random() * 1.3;
+
+        const scrap =
+            this.box(
+                x,
+                y,
+                z,
+                size,
+                size,
+                size,
+                Math.random() > 0.5
+                    ? this.materials.metal
+                    : this.materials.darkMetal,
+                true
+            );
+
+        scrap.rotation.set(
+            Math.random(),
+            Math.random(),
+            Math.random()
+        );
+    }
+
+    createTire(x, y, z) {
+        const tire =
+            new THREE.Mesh(
+                new THREE.TorusGeometry(
+                    0.7,
+                    0.25,
+                    10,
+                    20
+                ),
+                this.materials.blackMetal
+            );
+
+        tire.position.set(
+            x,
+            y,
+            z
+        );
+
+        tire.rotation.x =
+            Math.PI / 2;
+
+        this.scene.add(tire);
     }
 
     // =========================================================
@@ -637,43 +966,71 @@ export class World {
     // =========================================================
 
     createMuseum() {
+        const r = this.room(
+            -10,
+            23,
+            14,
+            9,
+            5
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["north", "east"]
+        );
+
         for (let i = 0; i < 4; i++) {
-            const display =
-                new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        2,
-                        1.8,
-                        1.4
-                    ),
-                    this.materials.glass
-                );
+            const x =
+                -14 + i * 2.6;
 
-            display.position.set(
-                -12 + i * 3,
-                1,
-                24
+            this.createDisplayCase(
+                x,
+                23
             );
-
-            this.scene.add(display);
-
-            const artifact =
-                new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        0.7,
-                        0.7,
-                        0.7
-                    ),
-                    this.materials.metal
-                );
-
-            artifact.position.set(
-                -12 + i * 3,
-                1,
-                24
-            );
-
-            this.scene.add(artifact);
         }
+
+        this.roomLabel(
+            "MUSEUM",
+            -10,
+            27.2
+        );
+    }
+
+    createDisplayCase(x, z) {
+        this.box(
+            x,
+            0.8,
+            z,
+            1.7,
+            0.2,
+            1.2,
+            this.materials.wood,
+            true
+        );
+
+        const glass =
+            this.box(
+                x,
+                1.5,
+                z,
+                1.5,
+                1.2,
+                1,
+                this.materials.glass
+            );
+
+        glass.userData.type =
+            "museum-display";
+
+        this.cylinder(
+            x,
+            1.35,
+            z,
+            0.3,
+            0.6,
+            this.materials.yellow,
+            12
+        );
     }
 
     // =========================================================
@@ -681,80 +1038,105 @@ export class World {
     // =========================================================
 
     createDiningHall() {
-        for (let x = 1; x <= 9; x += 4) {
-            this.createTable(
+        const r = this.room(
+            4,
+            23,
+            12,
+            9,
+            5
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["north", "west", "east"]
+        );
+
+        for (let x = 0; x < 8; x += 4) {
+            this.createDiningTable(
                 x,
-                24,
-                2.5
+                21
+            );
+
+            this.createDiningTable(
+                x,
+                25
             );
         }
 
-        const kitchen =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    8,
-                    2,
-                    1
-                ),
-                this.materials.metal
-            );
-
-        kitchen.position.set(
-            5,
-            1,
-            27
+        this.box(
+            4,
+            1.2,
+            26.7,
+            8,
+            2.2,
+            0.8,
+            this.materials.darkMetal,
+            true
         );
 
-        this.scene.add(kitchen);
-        this.colliders.push(kitchen);
+        this.roomLabel(
+            "DINING HALL",
+            4,
+            27.2
+        );
     }
 
-    createTable(x, z, width) {
-        const top = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                width,
-                0.25,
-                1.4
-            ),
-            this.materials.wood
-        );
-
-        top.position.set(
+    createDiningTable(x, z) {
+        this.box(
             x,
-            1.5,
-            z
+            1.25,
+            z,
+            3,
+            0.25,
+            1.2,
+            this.materials.wood,
+            true
         );
 
-        this.scene.add(top);
-        this.colliders.push(top);
-
-        for (const lx of [
-            -width / 2 + 0.2,
-            width / 2 - 0.2
-        ]) {
-            for (const lz of [
-                -0.5,
-                0.5
-            ]) {
-                const leg = new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        0.2,
-                        1.5,
-                        0.2
-                    ),
-                    this.materials.metal
+        for (const dx of [-1.2, 1.2]) {
+            for (const dz of [-0.4, 0.4]) {
+                this.box(
+                    x + dx,
+                    0.6,
+                    z + dz,
+                    0.15,
+                    1.2,
+                    0.15,
+                    this.materials.metal,
+                    true
                 );
-
-                leg.position.set(
-                    x + lx,
-                    0.75,
-                    z + lz
-                );
-
-                this.scene.add(leg);
-                this.colliders.push(leg);
             }
         }
+
+        for (const dx of [-1.8, 1.8]) {
+            this.createChair(
+                x + dx,
+                z
+            );
+        }
+    }
+
+    createChair(x, z) {
+        this.box(
+            x,
+            0.6,
+            z,
+            0.7,
+            0.15,
+            0.7,
+            this.materials.wood,
+            true
+        );
+
+        this.box(
+            x,
+            1,
+            z + 0.3,
+            0.7,
+            1,
+            0.12,
+            this.materials.wood
+        );
     }
 
     // =========================================================
@@ -762,44 +1144,105 @@ export class World {
     // =========================================================
 
     createLibrary() {
-        for (let x = 14; x <= 22; x += 2) {
-            const shelf = new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    1.2,
-                    3,
-                    0.5
-                ),
-                this.materials.wood
+        const r = this.room(
+            17,
+            0,
+            12,
+            12,
+            6
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["west", "east", "south"]
+        );
+
+        for (let z = -4; z <= 4; z += 2.5) {
+            this.createBookshelf(
+                13.2,
+                z
             );
 
-            shelf.position.set(
-                x,
-                1.5,
-                0
+            this.createBookshelf(
+                20.8,
+                z
             );
+        }
 
-            this.scene.add(shelf);
-            this.colliders.push(shelf);
+        for (let z = -2; z <= 3; z += 5) {
+            this.createReadingTable(
+                17,
+                z
+            );
+        }
 
-            for (let y = 0; y < 3; y++) {
-                const book = new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        0.3,
-                        0.5,
-                        0.4
-                    ),
-                    this.materials.red
+        this.roomLabel(
+            "LIBRARY",
+            17,
+            -5.4
+        );
+    }
+
+    createBookshelf(x, z) {
+        this.box(
+            x,
+            1.8,
+            z,
+            1,
+            3.6,
+            0.55,
+            this.materials.wood,
+            true
+        );
+
+        const books = [
+            this.materials.bookRed,
+            this.materials.bookBlue,
+            this.materials.bookGreen,
+            this.materials.bookYellow
+        ];
+
+        for (let y = 0.6; y < 3.3; y += 0.55) {
+            for (let i = -0.3; i <= 0.3; i += 0.3) {
+                this.box(
+                    x + i,
+                    y,
+                    z - 0.32,
+                    0.18,
+                    0.42,
+                    0.08,
+                    books[
+                        Math.floor(
+                            Math.random() * books.length
+                        )
+                    ]
                 );
-
-                book.position.set(
-                    x - 0.25,
-                    0.6 + y * 0.75,
-                    -0.28
-                );
-
-                this.scene.add(book);
             }
         }
+    }
+
+    createReadingTable(x, z) {
+        this.box(
+            x,
+            1,
+            z,
+            3,
+            0.2,
+            1.4,
+            this.materials.wood,
+            true
+        );
+
+        this.box(
+            x,
+            0.5,
+            z,
+            0.15,
+            1,
+            0.15,
+            this.materials.metal,
+            true
+        );
     }
 
     // =========================================================
@@ -807,31 +1250,53 @@ export class World {
     // =========================================================
 
     createMaze() {
+        const r = this.room(
+            29,
+            1,
+            14,
+            15,
+            5
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["west"]
+        );
+
         const walls = [
-            [25, -1, 5, 0.4],
-            [29, 2, 0.4, 6],
-            [25, 5, 5, 0.4],
-            [23, 9, 0.4, 7],
-            [27, 12, 6, 0.4],
-            [32, 8, 0.4, 8],
-            [29, 3, 5, 0.4],
-            [27, 6, 0.4, 5]
+            [-4, -5, 6, 0.4],
+            [1, -5, 0.4, 6],
+            [-1, -2, 5, 0.4],
+            [-5, 1, 0.4, 7],
+            [-1, 4, 6, 0.4],
+            [4, 2, 0.4, 6],
+            [1, -1, 5, 0.4],
+            [5, -5, 0.4, 5]
         ];
 
         for (const [
             x,
             z,
-            width,
-            depth
+            sx,
+            sz
         ] of walls) {
-            this.createWall(
-                x,
-                z,
-                width,
-                depth,
-                3
+            this.box(
+                29 + x,
+                1.5,
+                1 + z,
+                sx,
+                3,
+                sz,
+                this.materials.wallDark,
+                true
             );
         }
+
+        this.roomLabel(
+            "MAZE",
+            29,
+            -6.4
+        );
     }
 
     // =========================================================
@@ -839,30 +1304,60 @@ export class World {
     // =========================================================
 
     createStorage() {
-        for (let x = 14; x <= 22; x += 2) {
-            for (let z = 16; z <= 20; z += 2) {
-                const crate =
-                    new THREE.Mesh(
-                        new THREE.BoxGeometry(
-                            1.5,
-                            1.5,
-                            1.5
-                        ),
-                        this.materials.wood
-                    );
+        const r = this.room(
+            18,
+            16,
+            11,
+            9,
+            5
+        );
 
-                crate.position.set(
+        this.createOpenRoomWalls(
+            r,
+            ["north", "south", "east"]
+        );
+
+        for (let x = 15; x <= 21; x += 2) {
+            for (let z = 14; z <= 18; z += 2) {
+                this.createCrate(
                     x,
-                    0.75,
-                    z
+                    z,
+                    Math.random() > 0.5
                 );
-
-                crate.castShadow = true;
-
-                this.scene.add(crate);
-                this.colliders.push(crate);
             }
         }
+
+        this.roomLabel(
+            "STORAGE",
+            18,
+            20.2
+        );
+    }
+
+    createCrate(x, z, large) {
+        const size =
+            large ? 1.5 : 1;
+
+        this.box(
+            x,
+            size / 2,
+            z,
+            size,
+            size,
+            size,
+            this.materials.wood,
+            true
+        );
+
+        this.box(
+            x,
+            size / 2,
+            z - size / 2 - 0.01,
+            size * 0.08,
+            size * 0.95,
+            0.06,
+            this.materials.darkMetal
+        );
     }
 
     // =========================================================
@@ -870,44 +1365,135 @@ export class World {
     // =========================================================
 
     createLounge() {
-        const couch =
+        const r = this.room(
+            27,
+            23,
+            13,
+            9,
+            5
+        );
+
+        this.createOpenRoomWalls(
+            r,
+            ["north", "west"]
+        );
+
+        this.createCouch(
+            27,
+            21
+        );
+
+        this.createCouch(
+            23,
+            24,
+            Math.PI / 2
+        );
+
+        this.cylinder(
+            28,
+            0.45,
+            25,
+            1,
+            0.5,
+            this.materials.wood,
+            24,
+            true
+        );
+
+        this.createPlant(
+            33,
+            25
+        );
+
+        this.roomLabel(
+            "LOUNGE",
+            27,
+            27.2
+        );
+    }
+
+    createCouch(x, z, rotation = 0) {
+        const group =
+            new THREE.Group();
+
+        group.position.set(
+            x,
+            0,
+            z
+        );
+
+        group.rotation.y =
+            rotation;
+
+        const base =
             new THREE.Mesh(
                 new THREE.BoxGeometry(
-                    6,
-                    1,
-                    1.8
+                    4,
+                    0.7,
+                    1.4
                 ),
                 this.materials.red
             );
 
-        couch.position.set(
-            26,
-            0.7,
-            25
-        );
+        base.position.y =
+            0.65;
 
-        this.scene.add(couch);
-        this.colliders.push(couch);
+        group.add(base);
 
-        const table =
+        const back =
             new THREE.Mesh(
-                new THREE.CylinderGeometry(
-                    1,
-                    1,
-                    0.5,
-                    24
+                new THREE.BoxGeometry(
+                    4,
+                    1.2,
+                    0.35
                 ),
-                this.materials.wood
+                this.materials.red
             );
 
-        table.position.set(
-            26,
-            0.4,
-            28
+        back.position.set(
+            0,
+            1.25,
+            0.52
         );
 
-        this.scene.add(table);
-        this.colliders.push(table);
+        group.add(back);
+
+        this.scene.add(group);
+
+        this.colliders.push(base);
+    }
+
+    createPlant(x, z) {
+        this.cylinder(
+            x,
+            0.45,
+            z,
+            0.5,
+            0.9,
+            this.materials.wood,
+            16,
+            true
+        );
+
+        for (let i = 0; i < 5; i++) {
+            const leaf =
+                new THREE.Mesh(
+                    new THREE.SphereGeometry(
+                        0.35,
+                        8,
+                        6
+                    ),
+                    this.materials.green
+                );
+
+            leaf.position.set(
+                x + (Math.random() - 0.5),
+                1.1 + Math.random(),
+                z + (Math.random() - 0.5)
+            );
+
+            this.scene.add(leaf);
+        }
     }
 
     // =========================================================
@@ -915,169 +1501,506 @@ export class World {
     // =========================================================
 
     createViewingLobby() {
-        const window =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    8,
-                    3,
-                    0.15
-                ),
-                this.materials.glass
-            );
-
-        window.position.set(
-            19,
-            2.2,
-            -15.8
+        const r = this.room(
+            17,
+            -9,
+            12,
+            7,
+            6
         );
 
-        this.scene.add(window);
+        this.createOpenRoomWalls(
+            r,
+            ["south"]
+        );
 
-        const light =
-            new THREE.PointLight(
-                0x9ed8ff,
-                3,
-                12
-            );
+        // huge observation window
+        this.box(
+            17,
+            2.8,
+            -12.35,
+            9,
+            4.5,
+            0.12,
+            this.materials.glass
+        );
 
-        light.position.set(
-            19,
+        this.box(
+            17,
+            0.8,
+            -11.7,
+            9,
+            0.25,
+            0.7,
+            this.materials.metal,
+            true
+        );
+
+        this.createRail(
+            17,
+            -11.2,
+            9,
+            0
+        );
+
+        this.createPointLight(
+            17,
             3,
-            -14
+            -9,
+            0x8ed9ff,
+            5,
+            14
         );
 
-        this.scene.add(light);
+        this.roomLabel(
+            "VIEWING LOBBY",
+            17,
+            -12.7
+        );
     }
 
     // =========================================================
-    // ROOM SIGNS
+    // CONNECTIONS
     // =========================================================
 
-    createRoomSign(
-        text,
+    createConnections() {
+        /*
+            These are deliberately narrow.
+            Rooms connect, but they do NOT become one giant open map.
+        */
+
+        // Atrium → Volcano
+        this.createCorridor(
+            0,
+            -13.5,
+            3,
+            5
+        );
+
+        // Atrium → Disco
+        this.createCorridor(
+            -12.5,
+            -7,
+            5,
+            3
+        );
+
+        // Atrium → Amethyst
+        this.createCorridor(
+            -11,
+            1,
+            5,
+            3
+        );
+
+        // Amethyst → Scrapyard
+        this.createCorridor(
+            -19,
+            7.5,
+            3,
+            4
+        );
+
+        // Scrapyard → Museum
+        this.createCorridor(
+            -13,
+            18,
+            5,
+            3
+        );
+
+        // Museum → Dining
+        this.createCorridor(
+            -3,
+            23,
+            5,
+            3
+        );
+
+        // Atrium → Library
+        this.createCorridor(
+            12,
+            1,
+            5,
+            3
+        );
+
+        // Library → Maze
+        this.createCorridor(
+            23,
+            1,
+            5,
+            3
+        );
+
+        // Library → Storage
+        this.createCorridor(
+            17,
+            9,
+            3,
+            5
+        );
+
+        // Storage → Lounge
+        this.createCorridor(
+            22,
+            20,
+            5,
+            3
+        );
+
+        // Atrium → Viewing Lobby
+        this.createCorridor(
+            9,
+            -7,
+            5,
+            3
+        );
+    }
+
+    createCorridor(
         x,
-        z
+        z,
+        width,
+        depth
+    ) {
+        this.box(
+            x,
+            0.05,
+            z,
+            width,
+            0.1,
+            depth,
+            this.materials.floorLight
+        );
+
+        // overhead lights
+        this.createHangingLamp(
+            x,
+            4,
+            z
+        );
+    }
+
+    // =========================================================
+    // OPEN ROOM WALLS
+    // =========================================================
+
+    createOpenRoomWalls(room, openings = []) {
+        const {
+            x,
+            z,
+            width,
+            depth,
+            height
+        } = room;
+
+        const t = 0.45;
+
+        if (!openings.includes("north")) {
+            this.wall(
+                x,
+                z - depth / 2,
+                width,
+                t,
+                height
+            );
+        }
+
+        if (!openings.includes("south")) {
+            this.wall(
+                x,
+                z + depth / 2,
+                width,
+                t,
+                height
+            );
+        }
+
+        if (!openings.includes("west")) {
+            this.wall(
+                x - width / 2,
+                z,
+                t,
+                depth,
+                height
+            );
+        }
+
+        if (!openings.includes("east")) {
+            this.wall(
+                x + width / 2,
+                z,
+                t,
+                depth,
+                height
+            );
+        }
+    }
+
+    // =========================================================
+    // PROPS
+    // =========================================================
+
+    createBench(x, y, z) {
+        this.box(
+            x,
+            y,
+            z,
+            3,
+            0.25,
+            0.65,
+            this.materials.wood,
+            true
+        );
+
+        this.box(
+            x - 1.1,
+            y / 2,
+            z,
+            0.15,
+            y,
+            0.15,
+            this.materials.metal,
+            true
+        );
+
+        this.box(
+            x + 1.1,
+            y / 2,
+            z,
+            0.15,
+            y,
+            0.15,
+            this.materials.metal,
+            true
+        );
+    }
+
+    createRail(
+        x,
+        z,
+        width,
+        rotation = 0
     ) {
         const group =
             new THREE.Group();
 
         group.position.set(
             x,
-            2.8,
+            0,
             z
         );
 
-        group.userData.room = text;
+        group.rotation.y =
+            rotation;
 
-        const board =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    2.5,
-                    0.7,
-                    0.08
-                ),
-                this.materials.black
+        for (
+            let i = -width / 2;
+            i <= width / 2;
+            i += 1
+        ) {
+            const post =
+                new THREE.Mesh(
+                    new THREE.CylinderGeometry(
+                        0.05,
+                        0.05,
+                        1.3,
+                        8
+                    ),
+                    this.materials.metal
+                );
+
+            post.position.set(
+                i,
+                0.65,
+                0
             );
 
-        group.add(board);
+            group.add(post);
+        }
+
+        const bar =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    width,
+                    0.08,
+                    0.08
+                ),
+                this.materials.metal
+            );
+
+        bar.position.y = 1.3;
+
+        group.add(bar);
 
         this.scene.add(group);
+    }
+
+    createHangingLamp(
+        x,
+        y,
+        z
+    ) {
+        this.box(
+            x,
+            y,
+            z,
+            0.5,
+            0.15,
+            0.5,
+            this.materials.blackMetal
+        );
+
+        const light =
+            new THREE.PointLight(
+                0xffd89b,
+                2.5,
+                7
+            );
+
+        light.position.set(
+            x,
+            y - 0.3,
+            z
+        );
+
+        this.scene.add(light);
+    }
+
+    // =========================================================
+    // LABELS
+    // =========================================================
+
+    roomLabel(text, x, z) {
+        const canvas =
+            document.createElement("canvas");
+
+        canvas.width = 512;
+        canvas.height = 128;
+
+        const ctx =
+            canvas.getContext("2d");
+
+        ctx.fillStyle =
+            "#111111";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        ctx.fillStyle =
+            "#eeeeee";
+
+        ctx.font =
+            "bold 42px monospace";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+        ctx.fillText(
+            text,
+            256,
+            64
+        );
+
+        const texture =
+            new THREE.CanvasTexture(
+                canvas
+            );
+
+        const label =
+            new THREE.Mesh(
+                new THREE.PlaneGeometry(
+                    3.2,
+                    0.8
+                ),
+                new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true
+                })
+            );
+
+        label.position.set(
+            x,
+            3.1,
+            z
+        );
+
+        label.rotation.y =
+            Math.PI;
+
+        this.scene.add(label);
     }
 
     // =========================================================
     // LIGHTING
     // =========================================================
 
-    createLighting() {
-        const ambient =
-            new THREE.HemisphereLight(
-                0xb8c3d0,
-                0x151515,
-                1.1
-            );
-
-        this.scene.add(ambient);
-
-        const main =
-            new THREE.DirectionalLight(
-                0xffe5c4,
-                1.8
-            );
-
-        main.position.set(
-            -20,
-            30,
-            -15
-        );
-
-        main.castShadow = true;
-
-        main.shadow.mapSize.set(
-            2048,
-            2048
-        );
-
-        this.scene.add(main);
-    }
-
-    // =========================================================
-    // DETAILS
-    // =========================================================
-
-    createDetails() {
-        const grid =
-            new THREE.GridHelper(
-                70,
-                70,
-                0x454545,
-                0x222222
-            );
-
-        grid.position.y = 0.01;
-
-        this.scene.add(grid);
-    }
-
-    // =========================================================
-    // GENERIC BOX
-    // =========================================================
-
-    addBox(
-        width,
-        height,
-        depth,
+    createPointLight(
         x,
         y,
         z,
-        material,
-        collider = true
+        color,
+        intensity,
+        distance
     ) {
-        const mesh =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    width,
-                    height,
-                    depth
-                ),
-                material
+        const light =
+            new THREE.PointLight(
+                color,
+                intensity,
+                distance
             );
 
-        mesh.position.set(
+        light.position.set(
             x,
             y,
             z
         );
 
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        light.castShadow = true;
 
-        this.scene.add(mesh);
+        this.scene.add(light);
 
-        if (collider) {
-            this.colliders.push(mesh);
-        }
+        return light;
+    }
 
-        return mesh;
+    createGlobalLighting() {
+        const hemi =
+            new THREE.HemisphereLight(
+                0xcbd4dd,
+                0x101010,
+                1.2
+            );
+
+        this.scene.add(hemi);
+
+        const sun =
+            new THREE.DirectionalLight(
+                0xffe5c7,
+                1.5
+            );
+
+        sun.position.set(
+            -20,
+            30,
+            -15
+        );
+
+        sun.castShadow = true;
+
+        sun.shadow.mapSize.set(
+            2048,
+            2048
+        );
+
+        this.scene.add(sun);
     }
 
     // =========================================================
@@ -1086,7 +2009,7 @@ export class World {
 
     placeSign(
         position,
-        rotationY = 0
+        rotation = 0
     ) {
         if (!position) return null;
 
@@ -1094,63 +2017,50 @@ export class World {
             new THREE.Group();
 
         group.position.copy(position);
-        group.rotation.y = rotationY;
+        group.rotation.y =
+            rotation;
 
         const board =
             new THREE.Mesh(
                 new THREE.BoxGeometry(
-                    1.25,
-                    0.8,
+                    1.3,
+                    0.75,
                     0.08
                 ),
                 this.materials.sign
             );
 
-        board.castShadow = true;
-
         group.add(board);
 
         const left =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    0.08,
-                    0.8,
-                    0.08
-                ),
+            this.box(
+                -0.42,
+                -0.65,
+                0,
+                0.08,
+                0.75,
+                0.08,
                 this.materials.wood
             );
-
-        left.position.set(
-            -0.42,
-            -0.7,
-            0
-        );
-
-        group.add(left);
 
         const right =
-            new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    0.08,
-                    0.8,
-                    0.08
-                ),
+            this.box(
+                0.42,
+                -0.65,
+                0,
+                0.08,
+                0.75,
+                0.08,
                 this.materials.wood
             );
 
-        right.position.set(
-            0.42,
-            -0.7,
-            0
-        );
-
+        group.add(left);
         group.add(right);
 
-        group.userData.type = "sign";
-        group.userData.playerCreated = true;
+        group.userData.type =
+            "sign";
 
         this.scene.add(group);
-
         this.signs.push(group);
 
         return group;
@@ -1170,6 +2080,10 @@ export class World {
         }
 
         this.scene.remove(sign);
+    }
+
+    getSigns() {
+        return this.signs;
     }
 
     // =========================================================
@@ -1198,9 +2112,9 @@ export class World {
         return this.players;
     }
 
-    getSigns() {
-        return this.signs;
-    }
+    // =========================================================
+    // COLLISION
+    // =========================================================
 
     getColliders() {
         return this.colliders;
@@ -1210,16 +2124,12 @@ export class World {
         return this.interactables;
     }
 
-    // =========================================================
-    // COLLISION
-    // =========================================================
-
     canMoveTo(
         position,
         radius,
         height
     ) {
-        const box =
+        const playerBox =
             new THREE.Box3(
                 new THREE.Vector3(
                     position.x - radius,
@@ -1234,29 +2144,24 @@ export class World {
             );
 
         for (const collider of this.colliders) {
-            if (
-                !collider ||
-                !collider.visible
-            ) {
+            if (!collider.visible) {
                 continue;
             }
 
-            const colliderBox =
+            const box =
                 new THREE.Box3().setFromObject(
                     collider
                 );
 
             if (
-                colliderBox.max.y <= box.min.y ||
-                colliderBox.min.y >= box.max.y
+                box.max.y <= playerBox.min.y ||
+                box.min.y >= playerBox.max.y
             ) {
                 continue;
             }
 
             if (
-                box.intersectsBox(
-                    colliderBox
-                )
+                playerBox.intersectsBox(box)
             ) {
                 return false;
             }
@@ -1266,11 +2171,44 @@ export class World {
     }
 
     // =========================================================
-    // GAME LOOP
+    // SWITCH
+    // =========================================================
+
+    switchWithPlayer(target) {
+        if (!target) {
+            return false;
+        }
+
+        const temp =
+            this.players.find(
+                p => p !== target &&
+                     p.userData?.local
+            );
+
+        if (!temp) {
+            return false;
+        }
+
+        const position =
+            temp.position.clone();
+
+        temp.position.copy(
+            target.position
+        );
+
+        target.position.copy(
+            position
+        );
+
+        return true;
+    }
+
+    // =========================================================
+    // UPDATE
     // =========================================================
 
     update(delta) {
-        // Reserved for future world animation.
+        // Environmental animation can go here.
     }
 
     // =========================================================
@@ -1278,17 +2216,15 @@ export class World {
     // =========================================================
 
     destroy() {
-        for (const object of [...this.scene.children]) {
-            if (object.userData?.persistent) {
-                continue;
-            }
-
-            this.scene.remove(object);
-        }
-
         this.colliders.length = 0;
         this.interactables.length = 0;
         this.signs.length = 0;
         this.players.length = 0;
+
+        for (
+            const child of [...this.scene.children]
+        ) {
+            this.scene.remove(child);
+        }
     }
 }
