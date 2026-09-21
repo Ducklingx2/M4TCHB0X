@@ -9,6 +9,10 @@ export class Player {
         this.onMessage =
             options.onMessage || (() => {});
 
+        // -------------------------
+        // PLAYER STATE
+        // -------------------------
+
         this.position = new THREE.Vector3(
             0,
             1.1,
@@ -26,18 +30,35 @@ export class Player {
         this.gravity = 22;
         this.jumpForce = 8;
 
-        this.grounded = false;
+        this.grounded = true;
+
+        // -------------------------
+        // LOOK
+        // -------------------------
 
         this.yaw = 0;
         this.pitch = 0;
+
+        // -------------------------
+        // INPUT
+        // -------------------------
 
         this.keys = {};
 
         this.enabled = false;
         this.pointerLocked = false;
+        this.pointerLockCooldown = false;
+
+        // -------------------------
+        // MATCH DATA
+        // -------------------------
 
         this.uid = "LOCAL";
         this.role = "MATCH";
+
+        // -------------------------
+        // INVENTORY
+        // -------------------------
 
         this.inventory = [
             {
@@ -45,22 +66,26 @@ export class Player {
                 name: "OPEN FIST",
                 amount: Infinity
             },
+
             {
                 type: "sign",
                 name: "SIGNS",
                 amount: 48
             },
+
             {
                 type: "dart",
                 name: "DART",
                 amount: 1
             },
+
             {
                 type: "gun",
                 name: "GUN",
                 amount: 1,
                 loaded: false
             },
+
             {
                 type: "axe",
                 name: "AXE",
@@ -70,6 +95,10 @@ export class Player {
 
         this.selectedSlot = 0;
 
+        // -------------------------
+        // RAYCASTING
+        // -------------------------
+
         this.raycaster =
             new THREE.Raycaster();
 
@@ -77,6 +106,10 @@ export class Player {
             new THREE.Vector2(0, 0);
 
         this.camera.rotation.order = "YXZ";
+
+        // -------------------------
+        // SETUP
+        // -------------------------
 
         this.setupInput();
 
@@ -89,61 +122,76 @@ export class Player {
         this.world.addPlayer(this);
     }
 
-    // =========================================================
+    // =====================================================
     // INPUT
-    // =========================================================
+    // =====================================================
 
     setupInput() {
-        this.onKeyDown = event => {
+        this.onKeyDown = (event) => {
+            if (!this.enabled) return;
+
             this.keys[event.code] = true;
 
-            if (
-                event.code.startsWith("Digit")
-            ) {
+            // Number keys
+            if (event.code.startsWith("Digit")) {
                 const slot =
-                    Number(event.code.replace("Digit", "")) - 1;
+                    Number(
+                        event.code.replace("Digit", "")
+                    ) - 1;
 
-                if (slot >= 0 && slot < 9) {
+                if (
+                    slot >= 0 &&
+                    slot < this.inventory.length
+                ) {
                     this.selectSlot(slot);
                 }
             }
 
+            // Load gun
             if (event.code === "KeyR") {
                 this.loadGun();
             }
 
+            // Spark switch
             if (event.code === "KeyG") {
                 if (this.role === "SPARK") {
                     this.sparkSwitch();
                 }
             }
 
+            // Jump
             if (event.code === "Space") {
+                event.preventDefault();
                 this.jump();
             }
 
+            // Release / request pointer lock
             if (event.code === "Escape") {
                 this.toggleMouse();
             }
         };
 
-        this.onKeyUp = event => {
+        this.onKeyUp = (event) => {
             this.keys[event.code] = false;
         };
 
-        this.onMouseDown = event => {
+        this.onMouseDown = (event) => {
             if (!this.enabled) return;
 
+            // Left click = request pointer lock
             if (event.button === 0) {
-                this.requestMouse();
+                if (!this.pointerLocked) {
+                    this.requestMouse();
+                }
             }
 
+            // Right click = selected item
             if (event.button === 2) {
                 this.useSelectedItem();
             }
         };
 
-        this.onMouseMove = event => {
+        this.onMouseMove = (event) => {
             if (!this.pointerLocked) return;
 
             const sensitivity = 0.002;
@@ -154,11 +202,18 @@ export class Player {
             this.pitch -=
                 event.movementY * sensitivity;
 
-            this.pitch = THREE.MathUtils.clamp(
-                this.pitch,
-                -Math.PI / 2 + 0.05,
-                Math.PI / 2 - 0.05
-            );
+            this.pitch =
+                THREE.MathUtils.clamp(
+                    this.pitch,
+                    -Math.PI / 2 + 0.05,
+                    Math.PI / 2 - 0.05
+                );
+        };
+
+        this.onPointerLockChange = () => {
+            this.pointerLocked =
+                document.pointerLockElement ===
+                document.body;
         };
 
         document.addEventListener(
@@ -183,17 +238,13 @@ export class Player {
 
         document.addEventListener(
             "pointerlockchange",
-            () => {
-                this.pointerLocked =
-                    document.pointerLockElement ===
-                    document.body;
-            }
+            this.onPointerLockChange
         );
     }
 
-    // =========================================================
-    // ENABLE
-    // =========================================================
+    // =====================================================
+    // ENABLE / DISABLE
+    // =====================================================
 
     enable() {
         this.enabled = true;
@@ -205,15 +256,23 @@ export class Player {
         );
 
         this.camera.rotation.set(
-            0,
-            0,
+            this.pitch,
+            this.yaw,
             0
         );
     }
 
-    // =========================================================
-    // MOVEMENT
-    // =========================================================
+    disable() {
+        this.enabled = false;
+
+        this.keys = {};
+
+        this.releaseMouse();
+    }
+
+    // =====================================================
+    // UPDATE
+    // =====================================================
 
     update(delta) {
         if (!this.enabled) return;
@@ -221,6 +280,10 @@ export class Player {
         this.updateMovement(delta);
         this.updateCamera();
     }
+
+    // =====================================================
+    // MOVEMENT
+    // =====================================================
 
     updateMovement(delta) {
         const direction =
@@ -240,13 +303,21 @@ export class Player {
                 0
             );
 
+        const up =
+            new THREE.Vector3(
+                0,
+                1,
+                0
+            );
+
+        // Rotate movement according to camera yaw
         forward.applyAxisAngle(
-            new THREE.Vector3(0, 1, 0),
+            up,
             this.yaw
         );
 
         right.applyAxisAngle(
-            new THREE.Vector3(0, 1, 0),
+            up,
             this.yaw
         );
 
@@ -284,21 +355,21 @@ export class Player {
                 speed * delta
             );
 
+        // Horizontal movement
         this.tryMove(
             movement.x,
-            0,
             movement.z
         );
 
+        // Gravity
         this.velocity.y -=
             this.gravity * delta;
 
-        const vertical =
+        const nextY =
+            this.position.y +
             this.velocity.y * delta;
 
-        const nextY =
-            this.position.y + vertical;
-
+        // Ground
         if (nextY <= 1.1) {
             this.position.y = 1.1;
             this.velocity.y = 0;
@@ -309,66 +380,60 @@ export class Player {
         }
     }
 
-   tryMove(dx, dy, dz) {
-    const nextX = this.position.clone();
-    nextX.x += dx;
+    tryMove(dx, dz) {
+        // X movement
+        if (Math.abs(dx) > 0) {
+            const nextX =
+                this.position.clone();
 
-    if (this.canOccupy(nextX)) {
-        this.position.x = nextX.x;
-    }
+            nextX.x += dx;
 
-    const nextZ = this.position.clone();
-    nextZ.z += dz;
-
-    if (this.canOccupy(nextZ)) {
-        this.position.z = nextZ.z;
-    }
-}
-
-    canOccupy(position) {
-    const colliders = this.world.getColliders();
-
-    if (!colliders || colliders.length === 0) {
-        return true;
-    }
-
-    const playerBox = new THREE.Box3(
-        new THREE.Vector3(
-            position.x - this.radius,
-            position.y,
-            position.z - this.radius
-        ),
-        new THREE.Vector3(
-            position.x + this.radius,
-            position.y + this.height,
-            position.z + this.radius
-        )
-    );
-
-    for (const collider of colliders) {
-        if (!collider || !collider.visible) {
-            continue;
+            if (
+                this.canMoveTo(nextX)
+            ) {
+                this.position.x =
+                    nextX.x;
+            }
         }
 
-        const colliderBox =
-            new THREE.Box3().setFromObject(collider);
+        // Z movement
+        if (Math.abs(dz) > 0) {
+            const nextZ =
+                this.position.clone();
 
+            nextZ.z += dz;
+
+            if (
+                this.canMoveTo(nextZ)
+            ) {
+                this.position.z =
+                    nextZ.z;
+            }
+        }
+    }
+
+    canMoveTo(position) {
         if (
-            colliderBox.max.y <= playerBox.min.y ||
-            colliderBox.min.y >= playerBox.max.y
+            !this.world ||
+            typeof this.world.canMoveTo !== "function"
         ) {
-            continue;
+            return true;
         }
 
-        if (playerBox.intersectsBox(colliderBox)) {
-            return false;
-        }
+        return this.world.canMoveTo(
+            position,
+            this.radius,
+            this.height
+        );
     }
 
-    return true;
-}
+    // =====================================================
+    // JUMP
+    // =====================================================
 
     jump() {
+        if (!this.enabled) return;
+
         if (!this.grounded) return;
 
         this.velocity.y =
@@ -377,9 +442,9 @@ export class Player {
         this.grounded = false;
     }
 
-    // =========================================================
+    // =====================================================
     // CAMERA
-    // =========================================================
+    // =====================================================
 
     updateCamera() {
         this.camera.position.set(
@@ -395,18 +460,20 @@ export class Player {
         );
     }
 
-    // =========================================================
+    // =====================================================
     // INVENTORY
-    // =========================================================
+    // =====================================================
 
     selectSlot(index) {
-        if (!this.inventory[index]) return;
+        if (!this.inventory[index]) {
+            return;
+        }
 
         this.selectedSlot = index;
 
         document
             .querySelectorAll("#hotbar .slot")
-            .forEach(slot => {
+            .forEach((slot) => {
                 slot.classList.toggle(
                     "selected",
                     Number(slot.dataset.slot) === index
@@ -420,9 +487,9 @@ export class Player {
         ];
     }
 
-    // =========================================================
-    // ITEMS
-    // =========================================================
+    // =====================================================
+    // ITEM USE
+    // =====================================================
 
     useSelectedItem() {
         const item =
@@ -449,40 +516,60 @@ export class Player {
         }
     }
 
+    // =====================================================
+    // OPEN FIST
+    // =====================================================
+
     useFist() {
         const target =
             this.getTargetPlayer();
 
         if (!target) {
-            this.onMessage("NO MATCH TARGET");
+            this.onMessage(
+                "NO MATCH TARGET"
+            );
+
             return;
         }
 
         if (this.role === "SPARK") {
             target.userData.marked = true;
-            this.onMessage("MATCH MARKED");
+
+            this.onMessage(
+                "MATCH MARKED"
+            );
+
             return;
         }
 
         if (this.role === "SNUFFER") {
             target.userData.protected = true;
-            this.onMessage("MATCH PROTECTED");
+
+            this.onMessage(
+                "MATCH PROTECTED"
+            );
+
             return;
         }
 
-        this.onMessage("OPEN FIST");
+        this.onMessage(
+            "OPEN FIST"
+        );
     }
 
-    // =========================================================
+    // =====================================================
     // SIGNS
-    // =========================================================
+    // =====================================================
 
     placeSign() {
         const item =
             this.inventory[1];
 
         if (item.amount <= 0) {
-            this.onMessage("NO SIGNS LEFT");
+            this.onMessage(
+                "NO SIGNS LEFT"
+            );
+
             return;
         }
 
@@ -490,7 +577,10 @@ export class Player {
             this.getSignPlacement();
 
         if (!placement) {
-            this.onMessage("NO VALID SIGN LOCATION");
+            this.onMessage(
+                "NO VALID SIGN LOCATION"
+            );
+
             return;
         }
 
@@ -501,7 +591,10 @@ export class Player {
             );
 
         if (!sign) {
-            this.onMessage("SIGN CANNOT BE PLACED HERE");
+            this.onMessage(
+                "SIGN CANNOT BE PLACED HERE"
+            );
+
             return;
         }
 
@@ -512,7 +605,9 @@ export class Player {
             item.amount
         );
 
-        this.onMessage("SIGN PLACED");
+        this.onMessage(
+            "SIGN PLACED"
+        );
     }
 
     getSignPlacement() {
@@ -521,9 +616,8 @@ export class Player {
             this.camera
         );
 
-        const objects = [
-            ...this.world.getColliders()
-        ];
+        const objects =
+            this.world.getColliders();
 
         const hits =
             this.raycaster.intersectObjects(
@@ -535,11 +629,10 @@ export class Player {
             return null;
         }
 
-        const hit = hits[0];
+        const hit =
+            hits[0];
 
-        if (
-            hit.distance > 5
-        ) {
+        if (hit.distance > 5) {
             return null;
         }
 
@@ -548,16 +641,17 @@ export class Player {
 
         position.y = 1;
 
-        const normal =
-            hit.face?.normal
-                ?.clone()
-                ?.transformDirection(
-                    hit.object.matrixWorld
-                );
+        let rotation =
+            this.yaw;
 
-        let rotation = this.yaw;
+        if (hit.face) {
+            const normal =
+                hit.face.normal
+                    .clone()
+                    .transformDirection(
+                        hit.object.matrixWorld
+                    );
 
-        if (normal) {
             rotation =
                 Math.atan2(
                     normal.x,
@@ -571,9 +665,9 @@ export class Player {
         };
     }
 
-    // =========================================================
-    // DART / GUN
-    // =========================================================
+    // =====================================================
+    // GUN
+    // =====================================================
 
     loadGun() {
         const dart =
@@ -583,12 +677,18 @@ export class Player {
             this.inventory[3];
 
         if (dart.amount <= 0) {
-            this.onMessage("NO DART");
+            this.onMessage(
+                "NO DART"
+            );
+
             return;
         }
 
         if (gun.loaded) {
-            this.onMessage("GUN ALREADY LOADED");
+            this.onMessage(
+                "GUN ALREADY LOADED"
+            );
+
             return;
         }
 
@@ -607,10 +707,14 @@ export class Player {
             );
 
         if (gunSlot) {
-            gunSlot.classList.add("loaded");
+            gunSlot.classList.add(
+                "loaded"
+            );
         }
 
-        this.onMessage("DART LOADED");
+        this.onMessage(
+            "DART LOADED"
+        );
     }
 
     fireGun() {
@@ -618,7 +722,10 @@ export class Player {
             this.inventory[3];
 
         if (!gun.loaded) {
-            this.onMessage("LOAD THE GUN FIRST");
+            this.onMessage(
+                "LOAD THE GUN FIRST"
+            );
+
             return;
         }
 
@@ -626,7 +733,10 @@ export class Player {
             this.getTargetPlayer();
 
         if (!target) {
-            this.onMessage("NO MATCH TARGET");
+            this.onMessage(
+                "NO MATCH TARGET"
+            );
+
             return;
         }
 
@@ -638,7 +748,9 @@ export class Player {
             );
 
         if (gunSlot) {
-            gunSlot.classList.remove("loaded");
+            gunSlot.classList.remove(
+                "loaded"
+            );
         }
 
         const uid =
@@ -650,16 +762,19 @@ export class Player {
         );
     }
 
-    // =========================================================
+    // =====================================================
     // AXE
-    // =========================================================
+    // =====================================================
 
     useAxe() {
         const target =
             this.getTargetSign();
 
         if (!target) {
-            this.onMessage("NO SIGN TARGET");
+            this.onMessage(
+                "NO SIGN TARGET"
+            );
+
             return;
         }
 
@@ -667,12 +782,14 @@ export class Player {
             target
         );
 
-        this.onMessage("SIGN DESTROYED");
+        this.onMessage(
+            "SIGN DESTROYED"
+        );
     }
 
-    // =========================================================
+    // =====================================================
     // SPARK SWITCH
-    // =========================================================
+    // =====================================================
 
     sparkSwitch() {
         if (this.role !== "SPARK") {
@@ -683,22 +800,28 @@ export class Player {
             this.getTargetPlayer();
 
         if (!target) {
-            this.onMessage("NO MATCH TARGET");
+            this.onMessage(
+                "NO MATCH TARGET"
+            );
+
             return;
         }
 
-        if (
+        const switched =
             this.world.switchWithPlayer(
                 target
-            )
-        ) {
-            this.onMessage("LOCATION SWITCHED");
+            );
+
+        if (switched) {
+            this.onMessage(
+                "LOCATION SWITCHED"
+            );
         }
     }
 
-    // =========================================================
-    // RAYCASTING
-    // =========================================================
+    // =====================================================
+    // TARGETING
+    // =====================================================
 
     getTargetPlayer() {
         this.raycaster.setFromCamera(
@@ -706,16 +829,17 @@ export class Player {
             this.camera
         );
 
-        const objects =
+        const players =
             this.world
                 .getPlayers()
                 .filter(
-                    player => player !== this
+                    player =>
+                        player !== this
                 );
 
         const hits =
             this.raycaster.intersectObjects(
-                objects,
+                players,
                 true
             );
 
@@ -762,53 +886,75 @@ export class Player {
             object &&
             object.userData?.type !== "sign"
         ) {
-            object = object.parent;
+            object =
+                object.parent;
         }
 
         return object || null;
     }
 
-    // =========================================================
-    // MOUSE
-    // =========================================================
+    // =====================================================
+    // POINTER LOCK
+    // =====================================================
 
-   requestMouse() {
-    if (
-        document.pointerLockElement ||
-        this.pointerLockCooldown
-    ) {
-        return;
+    requestMouse() {
+        if (!this.enabled) {
+            return;
+        }
+
+        if (document.pointerLockElement) {
+            return;
+        }
+
+        if (this.pointerLockCooldown) {
+            return;
+        }
+
+        this.pointerLockCooldown = true;
+
+        try {
+            const request =
+                document.body.requestPointerLock();
+
+            if (
+                request &&
+                typeof request.catch === "function"
+            ) {
+                request.catch(() => {});
+            }
+        } catch {
+            // Browser rejected pointer lock.
+        }
+
+        window.setTimeout(() => {
+            this.pointerLockCooldown = false;
+        }, 250);
     }
 
-    this.pointerLockCooldown = true;
+    releaseMouse() {
+        if (
+            document.pointerLockElement
+        ) {
+            document.exitPointerLock();
+        }
 
-    const lock = document.body.requestPointerLock();
-
-    if (lock && typeof lock.catch === "function") {
-        lock.catch(() => {});
+        this.pointerLocked = false;
     }
 
-    setTimeout(() => {
-        this.pointerLockCooldown = false;
-    }, 150);
-}
+    toggleMouse() {
+        if (
+            document.pointerLockElement
+        ) {
+            this.releaseMouse();
+            return;
+        }
 
-releaseMouse() {
-    if (document.pointerLockElement) {
-        document.exitPointerLock();
-    }
-}
-
-toggleMouse() {
-    if (document.pointerLockElement) {
-        this.releaseMouse();
-    } else {
         this.requestMouse();
     }
-}
-    // =========================================================
-    // UI
-    // =========================================================
+
+    // =====================================================
+    // HOTBAR
+    // =====================================================
 
     updateHotbarCount(
         slotIndex,
@@ -832,11 +978,13 @@ toggleMouse() {
             amount;
     }
 
-    // =========================================================
+    // =====================================================
     // CLEANUP
-    // =========================================================
+    // =====================================================
 
     destroy() {
+        this.disable();
+
         document.removeEventListener(
             "keydown",
             this.onKeyDown
@@ -857,10 +1005,19 @@ toggleMouse() {
             this.onMouseMove
         );
 
-        this.world.removePlayer(
-            this
+        document.removeEventListener(
+            "pointerlockchange",
+            this.onPointerLockChange
         );
 
-        this.releaseMouse();
+        if (
+            this.world &&
+            typeof this.world.removePlayer ===
+                "function"
+        ) {
+            this.world.removePlayer(
+                this
+            );
+        }
     }
 }
